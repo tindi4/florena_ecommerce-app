@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 300">
+  <defs>
+    <linearGradient id="box1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3c26b"/><stop offset="1" stop-color="#e3a445"/></linearGradient>
+    <linearGradient id="box2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6a48f"/><stop offset="1" stop-color="#e9806a"/></linearGradient>
+    <linearGradient id="bag" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fd6c2"/><stop offset="1" stop-color="#3fae97"/></linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f1f5f3"/></linearGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#04110d" flood-opacity=".28"/></filter>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="9"/></filter>
+  </defs>
+
+  <!-- halos et confettis -->
+  <circle cx="300" cy="150" r="130" fill="#fff" opacity=".06"/>
+  <circle cx="300" cy="150" r="88" fill="#fff" opacity=".06"/>
+  <g>
+    <circle cx="96" cy="70" r="6" fill="#f3c26b"/><circle cx="470" cy="60" r="5" fill="#f6a48f"/><circle cx="150" cy="232" r="4" fill="#7fd6c2"/>
+    <rect x="430" y="210" width="10" height="10" rx="2" fill="#9db7ff" transform="rotate(20 435 215)"/>
+    <rect x="186" y="44" width="9" height="9" rx="2" fill="#f6a48f" transform="rotate(-18 190 48)"/>
+    <path d="M60 170 l6 -12 l6 12 l-6 12Z" fill="#fff" opacity=".7"/><path d="M400 30 l4 -8 l4 8 l-4 8Z" fill="#f3c26b"/>
+  </g>
+  <ellipse cx="300" cy="268" rx="190" ry="12" fill="#04110d" opacity=".35" filter="url(#soft)"/>
+
+  <!-- colis ambre -->
+  <g filter="url(#sh)">
+    <path d="M150 150 L250 150 L262 136 L162 136Z" fill="#f8d79a"/>
+    <rect x="150" y="150" width="100" height="112" rx="4" fill="url(#box1)"/>
+    <path d="M250 150 L262 136 L262 250 L250 262Z" fill="#c98a2e"/>
+    <rect x="192" y="150" width="16" height="112" fill="#fff" opacity=".45"/>
+    <rect x="164" y="226" width="34" height="22" rx="3" fill="#fff" opacity=".8"/>
+    <path d="M169 234h24M169 241h16" stroke="#c98a2e" stroke-width="2.500" stroke-linecap="round"/>
+  </g>
+  <!-- boîte corail -->
+  <g filter="url(#sh)">
+    <path d="M104 204 L176 204 L184 194 L112 194Z" fill="#fbc8ba"/>
+    <rect x="104" y="204" width="72" height="58" rx="4" fill="url(#box2)"/>
+    <rect x="98" y="198" width="84" height="14" rx="4" fill="#f6a48f"/>
+    <circle cx="140" cy="238" r="9" fill="#fff" opacity=".85"/>
+  </g>
+  <!-- sac de boutique -->
+  <g filter="url(#sh)">
+    <path d="M300 128 C300 84 352 84 352 128" fill="none" stroke="#2e8f7b" stroke-width="7" stroke-linecap="round"/>
+    <path d="M276 126 L376 126 L388 252 Q389 262 378 262 L274 262 Q263 262 264 252Z" fill="url(#bag)"/>
+    <path d="M286 126 L318 126 L296 262 L274 262 Q263 262 264 252Z" fill="#fff" opacity=".18"/>
+    <circle cx="326" cy="196" r="24" fill="#fff" opacity=".92"/>
+    <path d="m315 196 8 8 15-17" fill="none" stroke="#2e8f7b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- carte graphique -->
+  <g filter="url(#sh)" transform="rotate(6 430 130)">
+    <rect x="376" y="74" width="118" height="104" rx="12" fill="url(#card)"/>
+    <rect x="392" y="92" width="44" height="8" rx="4" fill="#cdd8d3"/>
+    <rect x="392" y="140" width="14" height="22" rx="3" fill="#9db7ff"/><rect x="412" y="126" width="14" height="36" rx="3" fill="#7fd6c2"/>
+    <rect x="432" y="134" width="14" height="28" rx="3" fill="#f3c26b"/><rect x="452" y="112" width="14" height="50" rx="3" fill="#f6a48f"/>
+  </g>
+  <!-- étiquette prix -->
+  <g filter="url(#sh)" transform="rotate(-10 230 96)">
+    <path d="M196 80 L250 80 Q258 80 258 88 L258 108 Q258 116 250 116 L196 116 L180 98Z" fill="#fff"/>
+    <circle cx="196" cy="98" r="4" fill="#e9806a"/>
+    <rect x="210" y="92" width="34" height="5" rx="2.500" fill="#f6a48f"/><rect x="210" y="102" width="22" height="5" rx="2.500" fill="#cdd8d3"/>
+  </g>
+</svg>

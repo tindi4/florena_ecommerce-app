@@ -1,0 +1,5 @@
+{
+  "apiUrl": "http://localhost:3000",
+  "googleMapsApiKey": "",
+  "defaultMapCenter": { "lat": 6.1725, "lng": 1.2314 }
+}

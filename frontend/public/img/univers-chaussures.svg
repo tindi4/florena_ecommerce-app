@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1ebe1"/><stop offset="1" stop-color="#e3d9ca"/></linearGradient>
+    <linearGradient id="fl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9cebd"/><stop offset="1" stop-color="#eae2d5"/></linearGradient>
+    <linearGradient id="leather" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c79a6b"/><stop offset="1" stop-color="#a2754a"/></linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b6350"/><stop offset="1" stop-color="#1a4131"/></linearGradient>
+    <linearGradient id="st" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2d8c8"/><stop offset="1" stop-color="#cbbfac"/></linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="12"/></filter>
+    <filter id="softer" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="34"/></filter>
+    <g id="sole"><path d="M6 100 L292 100 Q295 113 284 113 L62 113 L58 120 L12 120 Q3 120 6 100Z" fill="#f6efe3"/></g>
+    <g id="detail">
+      <path d="M22 42 C42 28 72 30 98 46 C76 51 46 52 22 42Z" fill="#000" opacity=".35"/>
+      <path d="M122 52 C138 60 150 72 151 86" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
+      <path d="M100 60 L150 62 L148 74 L104 72Z" fill="#000" opacity=".12"/>
+      <path d="M30 96 C90 90 200 92 282 96" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="2"/>
+    </g>
+    <path id="upper" d="M10 100 C8 62 26 20 62 22 C84 23 98 42 122 52 C162 66 216 63 256 73 C282 80 293 90 291 100Z"/>
+  </defs>
+  <rect width="600" height="750" fill="url(#bg)"/>
+  <rect y="580" width="600" height="170" fill="url(#fl)"/>
+  <path d="M300 0 L470 0 L250 580 L110 580Z" fill="#fff" opacity=".55" filter="url(#softer)"/>
+  <path d="M90 250 A130 130 0 0 1 350 250 L350 420 L90 420Z" fill="#fff" opacity=".4"/>
+
+  <!-- marches -->
+  <ellipse cx="300" cy="650" rx="250" ry="20" fill="#000" opacity=".14" filter="url(#soft)"/>
+  <path d="M250 392 L520 392 L548 416 L278 416Z" fill="#f4eee4"/>
+  <rect x="278" y="416" width="270" height="230" fill="url(#st)"/>
+  <path d="M250 392 L278 416 L278 646 L250 622Z" fill="#b9ac98"/>
+  <path d="M60 520 L330 520 L358 544 L88 544Z" fill="#f4eee4"/>
+  <rect x="88" y="544" width="270" height="102" fill="url(#st)"/>
+  <path d="M60 520 L88 544 L88 646 L60 622Z" fill="#b9ac98"/>
+
+  <!-- mocassin vert, marche haute -->
+  <g transform="translate(300 282) scale(.8)">
+    <ellipse cx="150" cy="122" rx="160" ry="9" fill="#000" opacity=".28" filter="url(#soft)"/>
+    <use href="#sole"/><use href="#upper" fill="url(#green)"/><use href="#detail"/>
+  </g>
+  <!-- paire camel, marche basse -->
+  <g transform="translate(132 414) scale(.78)" opacity=".95">
+    <use href="#sole"/><use href="#upper" fill="url(#leather)"/><use href="#detail"/>
+  </g>
+  <g transform="translate(78 420) scale(.84)">
+    <ellipse cx="150" cy="122" rx="165" ry="9" fill="#000" opacity=".28" filter="url(#soft)"/>
+    <use href="#sole"/><use href="#upper" fill="url(#leather)"/><use href="#detail"/>
+  </g>
+</svg>

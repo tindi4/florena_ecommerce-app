@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eceef1"/><stop offset="1" stop-color="#d9dde3"/></linearGradient>
+    <linearGradient id="fl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cdd2d9"/><stop offset="1" stop-color="#e2e5ea"/></linearGradient>
+    <linearGradient id="coat" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b98b5c"/><stop offset=".5" stop-color="#cda273"/><stop offset="1" stop-color="#a97c4e"/></linearGradient>
+    <linearGradient id="shirt" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#eef0ef"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#e3e6e5"/></linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1a4131"/><stop offset=".5" stop-color="#2b6350"/><stop offset="1" stop-color="#173a2c"/></linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>
+    <filter id="softer" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="34"/></filter>
+    <g id="hanger" fill="none" stroke="#8d7a5c" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M0 -44 q0 -20 13 -20 q13 0 13 13"/><path d="M0 -44 L0 -30 L-78 6 L78 6 L0 -30"/>
+    </g>
+  </defs>
+  <rect width="600" height="750" fill="url(#bg)"/>
+  <rect y="640" width="600" height="110" fill="url(#fl)"/>
+  <path d="M280 0 L450 0 L260 640 L110 640Z" fill="#fff" opacity=".55" filter="url(#softer)"/>
+
+  <!-- portant -->
+  <g stroke="#2b2f2d" stroke-width="7" stroke-linecap="round" fill="none">
+    <path d="M40 112 L560 112"/><path d="M70 112 L70 664"/><path d="M530 112 L530 664"/><path d="M40 664 L100 664 M500 664 L560 664"/>
+  </g>
+  <ellipse cx="300" cy="676" rx="240" ry="14" fill="#000" opacity=".14" filter="url(#soft)"/>
+
+  <!-- chemise blanche -->
+  <g transform="translate(160 176)">
+    <use href="#hanger"/>
+    <path d="M-40 4 L-86 26 L-112 190 L-78 198 L-62 120 L-62 330 L62 330 L62 120 L78 198 L112 190 L86 26 L40 4 L0 46Z" fill="url(#shirt)" stroke="#cfd4d2" stroke-linejoin="round"/>
+    <path d="M-40 4 L0 46 L-18 76 L-52 18Z M40 4 L0 46 L18 76 L52 18Z" fill="#fafbfb" stroke="#cfd4d2" stroke-linejoin="round"/>
+    <path d="M0 46 L0 330" stroke="#d5dad8" stroke-width="2"/>
+    <g fill="#c2c8c5"><circle cx="0" cy="96" r="3.500"/><circle cx="0" cy="146" r="3.500"/><circle cx="0" cy="196" r="3.500"/><circle cx="0" cy="246" r="3.500"/><circle cx="0" cy="296" r="3.500"/></g>
+  </g>
+
+  <!-- robe verte -->
+  <g transform="translate(446 176)">
+    <use href="#hanger"/>
+    <path d="M-34 4 L-58 20 L-46 110 L-88 404 L88 404 L46 110 L58 20 L34 4 C24 34 -24 34 -34 4Z" fill="url(#green)"/>
+    <path d="M-46 110 C-16 124 16 124 46 110" fill="none" stroke="#0f2c21" stroke-width="5"/>
+    <path d="M-20 130 L-44 404 M22 130 L40 404" stroke="#fff" stroke-opacity=".08" stroke-width="10"/>
+  </g>
+
+  <!-- manteau camel, au premier plan -->
+  <g transform="translate(306 190)">
+    <use href="#hanger"/>
+    <path d="M-52 2 L-104 26 L-140 286 L-98 296 L-80 170 L-84 430 L84 430 L80 170 L98 296 L140 286 L104 26 L52 2 L0 70Z" fill="url(#coat)"/>
+    <path d="M-52 2 L0 70 L-10 180 L-44 118 L-22 104 L-66 36Z" fill="#a67a4d"/>
+    <path d="M52 2 L0 70 L10 180 L44 118 L22 104 L66 36Z" fill="#b08556"/>
+    <path d="M2 180 L2 430" stroke="#8f6741" stroke-width="2"/>
+    <g fill="#6f4f30"><circle cx="-16" cy="220" r="6"/><circle cx="-16" cy="290" r="6"/><circle cx="-16" cy="360" r="6"/></g>
+    <path d="M-70 300 L-34 300 M34 300 L70 300" stroke="#8f6741" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-84 430 L-80 170 L-60 150 L-66 430Z" fill="#000" opacity=".08"/>
+  </g>
+</svg>

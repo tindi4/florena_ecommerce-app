@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 760" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9eceb"/><stop offset="1" stop-color="#d9dedb"/></linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d3d8d5"/><stop offset="1" stop-color="#e4e8e6"/></linearGradient>
+    <linearGradient id="stoneF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfd3d0"/><stop offset="1" stop-color="#b9beba"/></linearGradient>
+    <linearGradient id="stoneT" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef0ee"/><stop offset="1" stop-color="#dde1de"/></linearGradient>
+    <linearGradient id="bag" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2b6350"/><stop offset=".55" stop-color="#1f4a38"/><stop offset="1" stop-color="#163629"/></linearGradient>
+    <linearGradient id="shirt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e9ecea"/></linearGradient>
+    <linearGradient id="leather" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c79a6b"/><stop offset="1" stop-color="#a67a4d"/></linearGradient>
+    <linearGradient id="vase" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#174233"/><stop offset=".45" stop-color="#2f7059"/><stop offset="1" stop-color="#143a2c"/></linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>
+    <filter id="softer" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="30"/></filter>
+  </defs>
+
+  <rect width="900" height="760" fill="url(#wall)"/>
+  <rect y="610" width="900" height="150" fill="url(#floor)"/>
+  <!-- lumière de fenêtre -->
+  <g fill="#fff" opacity=".5" filter="url(#softer)">
+    <path d="M330 0 L520 0 L260 610 L90 610Z"/><path d="M600 0 L700 0 L470 610 L380 610Z"/>
+  </g>
+
+  <!-- vase et branche -->
+  <g transform="translate(-84 0)">
+    <ellipse cx="330" cy="470" rx="70" ry="14" fill="#000" opacity=".18" filter="url(#soft)"/>
+    <g fill="none" stroke="#3d5a48" stroke-width="4" stroke-linecap="round">
+      <path d="M322 300 C318 220 300 150 250 80"/><path d="M322 300 C330 220 350 170 400 110"/><path d="M318 250 C300 215 275 200 240 190"/>
+    </g>
+    <g fill="#3f7a5f">
+      <ellipse cx="246" cy="76" rx="30" ry="12" transform="rotate(-55 246 76)"/><ellipse cx="278" cy="128" rx="30" ry="12" transform="rotate(-20 278 128)"/>
+      <ellipse cx="236" cy="188" rx="30" ry="12" transform="rotate(-165 236 188)"/><ellipse cx="300" cy="196" rx="28" ry="11" transform="rotate(-70 300 196)"/>
+    </g>
+    <g fill="#2f6650">
+      <ellipse cx="404" cy="104" rx="30" ry="12" transform="rotate(-48 404 104)"/><ellipse cx="368" cy="160" rx="30" ry="12" transform="rotate(-120 368 160)"/>
+      <ellipse cx="352" cy="216" rx="26" ry="10" transform="rotate(-30 352 216)"/><ellipse cx="270" cy="236" rx="26" ry="10" transform="rotate(-140 270 236)"/>
+    </g>
+    <path d="M300 300 L344 300 C344 330 392 350 392 400 C392 450 360 470 322 470 C284 470 252 450 252 400 C252 350 300 330 300 300Z" fill="url(#vase)"/>
+    <ellipse cx="322" cy="300" rx="22" ry="6" fill="#0f2c21"/>
+    <path d="M276 380 C272 410 282 440 300 452" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <!-- socle bas (chemise) -->
+  <ellipse cx="400" cy="650" rx="260" ry="22" fill="#000" opacity=".16" filter="url(#soft)"/>
+  <path d="M190 470 L560 470 L590 500 L220 500Z" fill="url(#stoneT)"/>
+  <rect x="220" y="500" width="370" height="150" fill="url(#stoneF)"/>
+  <path d="M190 470 L220 500 L220 650 L190 620Z" fill="#aab0ab"/>
+
+  <!-- socle haut (sac) -->
+  <ellipse cx="700" cy="655" rx="190" ry="20" fill="#000" opacity=".16" filter="url(#soft)"/>
+  <path d="M540 330 L810 330 L840 360 L570 360Z" fill="url(#stoneT)"/>
+  <rect x="570" y="360" width="270" height="290" fill="url(#stoneF)"/>
+  <path d="M540 330 L570 360 L570 650 L540 620Z" fill="#aab0ab"/>
+
+  <!-- sac cabas -->
+  <g transform="translate(600 96)">
+    <ellipse cx="100" cy="252" rx="120" ry="12" fill="#000" opacity=".28" filter="url(#soft)"/>
+    <path d="M52 62 C52 -34 160 -34 160 62" fill="none" stroke="#143327" stroke-width="9" stroke-linecap="round"/>
+    <path d="M-6 60 L206 60 L220 238 Q221 250 208 250 L-8 250 Q-21 250 -20 238Z" fill="url(#bag)"/>
+    <path d="M40 62 C40 -30 148 -30 148 62" fill="none" stroke="#1f4a38" stroke-width="10" stroke-linecap="round"/>
+    <rect x="-6" y="60" width="212" height="16" fill="#163629"/>
+    <path d="M-2 84 L202 84" stroke="#fff" stroke-opacity=".18" stroke-width="1.500" stroke-dasharray="6 5"/>
+    <rect x="92" y="96" width="16" height="22" rx="3" fill="#b89a63"/>
+    <path d="M10 76 L60 76 L20 250 L-8 250 Q-21 250 -20 238Z" fill="#fff" opacity=".07"/>
+  </g>
+
+  <!-- chemise pliée -->
+  <g transform="translate(306 356)">
+    <ellipse cx="135" cy="122" rx="150" ry="10" fill="#000" opacity=".22" filter="url(#soft)"/>
+    <rect x="6" y="96" width="258" height="22" rx="8" fill="#dfe3e1"/>
+    <rect width="270" height="108" rx="10" fill="url(#shirt)" stroke="#d3d8d5"/>
+    <path d="M135 30 L135 108" stroke="#d3d8d5" stroke-width="2"/>
+    <path d="M84 0 L135 34 L106 56 L66 6Z" fill="#fbfcfb" stroke="#cfd4d1" stroke-linejoin="round"/>
+    <path d="M186 0 L135 34 L164 56 L204 6Z" fill="#fbfcfb" stroke="#cfd4d1" stroke-linejoin="round"/>
+    <g fill="#c5cbc8"><circle cx="135" cy="52" r="3"/><circle cx="135" cy="74" r="3"/><circle cx="135" cy="96" r="3"/></g>
+    <path d="M22 10 L22 100 M248 10 L248 100" stroke="#e1e5e3" stroke-width="2"/>
+  </g>
+
+  <!-- petit cube -->
+  <path d="M700 548 L812 548 L832 566 L720 566Z" fill="url(#stoneT)"/>
+  <rect x="720" y="566" width="112" height="100" fill="#c4c9c5"/>
+  <path d="M700 548 L720 566 L720 666 L700 646Z" fill="#a3a9a4"/>
+  <!-- porte-monnaie camel, posé devant le socle -->
+  <g transform="translate(352 612)">
+    <ellipse cx="78" cy="92" rx="96" ry="9" fill="#000" opacity=".24" filter="url(#soft)"/>
+    <rect x="0" y="0" width="156" height="92" rx="14" fill="url(#leather)"/>
+    <path d="M0 14 Q0 0 14 0 L142 0 Q156 0 156 14 L156 30 Q78 74 0 30Z" fill="#b3855a"/>
+    <path d="M6 31 Q78 71 150 31" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <circle cx="78" cy="52" r="8" fill="#e3cfa2"/><circle cx="78" cy="52" r="3.5" fill="#b89a63"/>
+    <path d="M12 10 L44 10 L20 92 L14 92 Q0 92 0 78 L0 14 Q0 10 12 10Z" fill="#fff" opacity=".1"/>
+  </g>
+
+  <!-- éclats discrets -->
+  <path d="M852 81 Q852 96 867 96 Q852 96 852 111 Q852 96 837 96 Q852 96 852 81Z" fill="#c9a961" opacity=".85"/>
+  <path d="M880 121 Q880 128 887 128 Q880 128 880 135 Q880 128 873 128 Q880 128 880 121Z" fill="#c9a961" opacity=".6"/>
+  <path d="M548 587 Q548 598 559 598 Q548 598 548 609 Q548 598 537 598 Q548 598 548 587Z" fill="#c9a961" opacity=".8"/>
+  <path d="M528 569 Q528 574 533 574 Q528 574 528 579 Q528 574 523 574 Q528 574 528 569Z" fill="#c9a961" opacity=".55"/>
+  <path d="M120 287 Q120 296 129 296 Q120 296 120 305 Q120 296 111 296 Q120 296 120 287Z" fill="#c9a961" opacity=".6"/>
+</svg>

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e6ece8"/><stop offset="1" stop-color="#d2dcd6"/></linearGradient>
+    <linearGradient id="fl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9d3cd"/><stop offset="1" stop-color="#dde4e0"/></linearGradient>
+    <linearGradient id="bag" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2b6350"/><stop offset=".55" stop-color="#1f4a38"/><stop offset="1" stop-color="#163629"/></linearGradient>
+    <linearGradient id="tan" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#cda273"/><stop offset="1" stop-color="#a87b4e"/></linearGradient>
+    <linearGradient id="st" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d5dbd7"/><stop offset="1" stop-color="#bcc4bf"/></linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>
+    <filter id="softer" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="34"/></filter>
+  </defs>
+  <rect width="600" height="750" fill="url(#bg)"/>
+  <rect y="590" width="600" height="160" fill="url(#fl)"/>
+  <path d="M250 0 L420 0 L210 590 L60 590Z" fill="#fff" opacity=".5" filter="url(#softer)"/>
+  <circle cx="455" cy="170" r="92" fill="#fff" opacity=".35"/>
+
+  <!-- socle -->
+  <ellipse cx="300" cy="640" rx="230" ry="20" fill="#000" opacity=".16" filter="url(#soft)"/>
+  <path d="M110 500 L470 500 L500 526 L140 526Z" fill="#eef1ef"/>
+  <rect x="140" y="526" width="360" height="110" fill="url(#st)"/>
+  <path d="M110 500 L140 526 L140 636 L110 610Z" fill="#a9b1ac"/>
+
+  <!-- petit sac camel -->
+  <g transform="translate(360 372)">
+    <ellipse cx="60" cy="130" rx="76" ry="9" fill="#000" opacity=".25" filter="url(#soft)"/>
+    <path d="M22 30 C22 -24 98 -24 98 30" fill="none" stroke="#8f6741" stroke-width="6" stroke-linecap="round"/>
+    <rect x="0" y="28" width="120" height="100" rx="12" fill="url(#tan)"/>
+    <path d="M0 40 Q0 28 12 28 L108 28 Q120 28 120 40 L120 62 Q60 92 0 62Z" fill="#b98a5b"/>
+    <circle cx="60" cy="76" r="7" fill="#e3cfa2"/>
+  </g>
+
+  <!-- grand cabas -->
+  <g transform="translate(150 236)">
+    <ellipse cx="110" cy="266" rx="130" ry="12" fill="#000" opacity=".28" filter="url(#soft)"/>
+    <path d="M60 66 C60 -40 178 -40 178 66" fill="none" stroke="#143327" stroke-width="10" stroke-linecap="round"/>
+    <path d="M-6 64 L226 64 L242 250 Q243 264 229 264 L-9 264 Q-23 264 -22 250Z" fill="url(#bag)"/>
+    <path d="M44 66 C44 -34 162 -34 162 66" fill="none" stroke="#1f4a38" stroke-width="11" stroke-linecap="round"/>
+    <rect x="-6" y="64" width="232" height="18" fill="#163629"/>
+    <path d="M0 92 L220 92" stroke="#fff" stroke-opacity=".18" stroke-width="1.500" stroke-dasharray="6 5"/>
+    <rect x="101" y="104" width="18" height="26" rx="3" fill="#b89a63"/>
+    <path d="M10 82 L66 82 L22 264 L-9 264 Q-23 264 -22 250Z" fill="#fff" opacity=".07"/>
+  </g>
+</svg>
