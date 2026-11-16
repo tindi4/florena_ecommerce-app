@@ -15,7 +15,12 @@ export interface PickedLocation { latitude: number; longitude: number; label: st
   template: `
     <div class="locpick">
       <div class="row gap wrap">
-        <button type="button" class="btn ghost sm" (click)="useMyPosition()" [disabled]="busy()">📍 Utiliser ma position</button>
+        <button type="button" class="btn-locate" [class.busy]="busy()" (click)="useMyPosition()" [disabled]="busy()">
+          <span class="btn-locate-ico" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></svg>
+          </span>
+          <span>{{ picked() ? 'Mettre à jour ma position' : 'Utiliser ma position' }}</span>
+        </button>
         @if (maps.enabled) {
           <input class="input" style="flex:1;min-width:200px" type="search" placeholder="Rechercher une adresse ou un quartier" #q
             (keydown.enter)="$event.preventDefault(); search(q.value)" aria-label="Rechercher sur la carte" />

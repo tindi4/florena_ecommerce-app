@@ -53,12 +53,14 @@ const accessFields = {
   orderNumber: z.preprocess(upper, z.string().max(40).optional()),
   phone: z.preprocess(blank, phone.optional()),
 };
-const ACCESS_MESSAGE = 'Saisissez le code complet de la commande, ou le numéro de commande avec le téléphone utilisé.';
+const ACCESS_MESSAGE = 'Saisissez le code complet ou le numéro de la commande.';
 const normalizeAccess = (v) => {
   const code = v.code || (v.orderNumber && FULL_CODE.test(v.orderNumber) ? v.orderNumber : undefined);
   return code ? { code } : { orderNumber: v.orderNumber, phone: v.phone };
 };
-const accessOk = (v) => !!(v.code || (v.orderNumber && FULL_CODE.test(v.orderNumber)) || (v.orderNumber && v.phone));
+const accessOk = (v) => !!(v.code || v.orderNumber);   // code complet ou numéro de commande : l'un ou l'autre suffit
+// Recherche simple : téléphone + nom donnés à la commande. Ne renvoie qu'un résumé (statut, date, montant).
+const findOrders = z.object({ phone, name: trimmed(2, 120, 'Nom') });
 const trackOrder = z.object(accessFields).refine(accessOk, { message: ACCESS_MESSAGE, path: ['orderNumber'] }).transform(normalizeAccess);
 
 // Modification d'une commande par le client (tant qu'elle n'est pas en préparation).
@@ -202,8 +204,11 @@ const username = z.string().trim().toLowerCase()
   .regex(/^[a-z0-9._-]+$/, "Nom d'utilisateur : lettres, chiffres, point, tiret ou tiret bas uniquement")
   .refine((v) => /[a-z]/.test(v), "Le nom d'utilisateur doit contenir au moins une lettre");
 const customerPassword = z.string().min(8, 'Mot de passe : 8 caractères minimum').max(200, 'Mot de passe trop long');
+// E-mail du compte : facultatif, sert uniquement à réinitialiser un mot de passe oublié.
+const customerEmail = z.string().trim().toLowerCase().email('Adresse e-mail invalide').max(190, 'Adresse e-mail trop longue');
 const customerRegister = z.object({
   phone,
+  email: z.preprocess(blank, customerEmail.optional()),
   username: z.preprocess(blank, username.optional()),
   name: z.preprocess(blank, trimmed(2, 120, 'Nom').optional()),
   password: customerPassword,
@@ -215,7 +220,13 @@ const customerLogin = z.object({
 const customerProfile = z.object({
   username: z.preprocess((v) => (v === '' ? null : v), username.nullable().optional()),
   name: z.preprocess((v) => (v === '' ? null : v), trimmed(2, 120, 'Nom').nullable().optional()),
-}).refine((v) => v.username !== undefined || v.name !== undefined, { message: 'Rien à modifier' });
+  email: z.preprocess((v) => (v === '' ? null : v), customerEmail.nullable().optional()),
+}).refine((v) => v.username !== undefined || v.name !== undefined || v.email !== undefined, { message: 'Rien à modifier' });
+const customerForgot = z.object({ email: customerEmail });
+const customerReset = z.object({
+  token: z.string().regex(/^[a-f0-9]{64}$/, 'Lien de réinitialisation invalide'),
+  newPassword: customerPassword,
+});
 const customerPasswordChange = z.object({
   currentPassword: z.string().min(1, 'Mot de passe actuel requis').max(200),
   newPassword: customerPassword,
@@ -232,8 +243,8 @@ const shopSettings = z.object({
 }).refine((v) => v.shopName !== undefined || v.primaryColor !== undefined, { message: 'Rien à modifier' });
 
 module.exports = {
-  ORDER_STATUSES, login, createOrder, customerEdit, adminOrderEdit, cartCheck, trackOrder, contactMessage, orderStatus, orderPayment,
+  ORDER_STATUSES, login, createOrder, customerEdit, adminOrderEdit, cartCheck, trackOrder, findOrders, contactMessage, orderStatus, orderPayment,
   product, category, activeFlag, stockAdjust, messageStatus, id, notifyCustomer, deliveryFeeUpdate, statsQuery,
   staffUser, staffUserUpdate, passwordReset, shopSettings, roleInput, roleUpdate,
-  customerRegister, customerLogin, customerProfile, customerPasswordChange, customerPreferences, claimOrders, FULL_CODE,
+  customerRegister, customerLogin, customerProfile, customerPasswordChange, customerPreferences, customerForgot, customerReset, claimOrders, FULL_CODE,
 };

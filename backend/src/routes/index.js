@@ -7,7 +7,7 @@ const admin = require('../controllers/adminController');
 const cust = require('../controllers/customerController');
 const { requireAdmin, requirePermission, csrfProtect } = require('../middleware/auth');
 const { requireCustomer, optionalCustomer } = require('../middleware/customerAuth');
-const { loginLimiter, customerLoginLimiter, registerLimiter, orderLimiter, trackLimiter, messageLimiter } = require('../middleware/rateLimit');
+const { loginLimiter, customerLoginLimiter, registerLimiter, resetLimiter, orderLimiter, trackLimiter, messageLimiter } = require('../middleware/rateLimit');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1 } });
 // Logo : 2 Mo maximum (le type réel du fichier est contrôlé ensuite par settingsService).
@@ -23,6 +23,7 @@ router.get('/products/:slug', pub.product);
 router.post('/cart/check', pub.cartCheck);
 router.post('/orders', orderLimiter, optionalCustomer, pub.createOrder);   // rattachée au compte si le client est connecté
 router.post('/orders/track', trackLimiter, pub.trackOrder);
+router.post('/orders/find', trackLimiter, pub.findOrders);
 router.post('/orders/invoice', trackLimiter, pub.invoice);
 router.patch('/orders/edit', trackLimiter, pub.editOrder);
 router.post('/messages', messageLimiter, pub.contact);
@@ -31,6 +32,8 @@ router.post('/messages', messageLimiter, pub.contact);
 router.post('/customer/register', registerLimiter, cust.register);
 router.post('/customer/login', customerLoginLimiter, cust.login);
 router.post('/customer/logout', cust.logout);
+router.post('/customer/password/forgot', resetLimiter, cust.forgotPassword);
+router.post('/customer/password/reset', customerLoginLimiter, cust.resetPassword);
 router.get('/customer/me', requireCustomer, cust.me);
 
 const acc = express.Router();

@@ -3,7 +3,6 @@ import { Title } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { CartService } from '../../core/cart.service';
-import { ToastService } from '../../core/toast.service';
 import { ProductDetail, Variant } from '../../core/models';
 import { buildOptionGroups, findVariant } from '../../core/utils';
 import { ImgPipe, MoneyPipe } from '../../shared/pipes';
@@ -72,7 +71,6 @@ export class ProductDetailPage {
   slug = input.required<string>();
   private api = inject(ApiService);
   private cart = inject(CartService);
-  private toast = inject(ToastService);
   private router = inject(Router);
   private title = inject(Title);
   Math = Math;
@@ -123,7 +121,6 @@ export class ProductDetailPage {
 
   add(p: ProductDetail, v: Variant) {
     this.cart.add({ variantId: v.id, slug: p.slug, name: p.name, imageUrl: p.images[0]?.url ?? null, attributes: v.attributes, price: v.price, quantity: this.qty() }, v.stock);
-    this.toast.success('Ajouté au panier.');
-    this.qty.set(1);
+    this.qty.set(1);   // le panneau « Votre sélection » s'ouvre : plus besoin de message en haut de l'écran
   }
 }

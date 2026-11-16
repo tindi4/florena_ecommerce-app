@@ -8,7 +8,7 @@ import { ApiService, toApiError } from '../../core/api.service';
   imports: [ReactiveFormsModule],
   template: `
     <div class="container section narrow">
-      <h1>Nous écrire</h1>
+      <header class="page-head"><span class="eyebrow">À votre écoute</span><h1>Nous écrire</h1></header>
       @if (sent()) {
         <div class="notice ok" role="status">Message envoyé. Nous vous répondrons dès que possible.</div>
         <button class="btn ghost mt" (click)="sent.set(false)">Envoyer un autre message</button>

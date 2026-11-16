@@ -23,7 +23,7 @@ import { AuthService } from '../../core/auth.service';
       <p class="muted">Créée le {{ o.createdAt | date:'dd/MM/yyyy à HH:mm' }}</p>
 
       <section class="card actions">
-        <div class="row between wrap gap"><h2>Actions</h2><div class="row gap wrap">@if (auth.can('orders.edit')) { <button type="button" class="btn sm" (click)="editing.set(true)">✏️ Modifier la commande</button> }<button type="button" class="btn ghost sm" (click)="openInvoice()">📄 Facture / bon de commande (PDF)</button></div></div>
+        <div class="row between wrap gap"><h2>Actions</h2><div class="row gap wrap">@if (auth.can('orders.edit')) { <button type="button" class="btn sm" (click)="editing.set(true)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4.5L19.3 9.2a2.1 2.1 0 0 0 0-3l-1.5-1.5a2.1 2.1 0 0 0-3 0L4 15.5V20Z"/><path d="m13.5 6 4.5 4.5"/></svg>Modifier la commande</button> }<button type="button" class="btn ghost sm" (click)="openInvoice()">📄 Facture / bon de commande (PDF)</button></div></div>
         <div class="row gap wrap">
           @for (s of o.allowedStatuses; track s) {
             @if (s === 'ANNULEE') { @if (auth.can('orders.cancel')) { <button class="btn danger-ghost" [disabled]="busy()" (click)="askCancel.set(true)">Annuler la commande</button> } }

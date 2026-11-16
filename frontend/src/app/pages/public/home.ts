@@ -19,16 +19,19 @@ const UNIVERS = [
   standalone: true,
   imports: [RouterLink, ProductCardComponent],
   template: `
-    <section class="hero">
-      <div class="hero-visual" aria-hidden="true"><img src="img/hero-still.svg" alt="" /></div>
+    <section class="hero plain">
       <div class="container hero-in">
         <div>
           <span class="eyebrow"><span class="dot" aria-hidden="true"></span>Nouvelle collection</span>
           <h1>{{ cfg.shopName() }}<span>Jusque dans les détails.</span></h1>
           <p class="lead">Sacs, chaussures et vêtements choisis un à un, pour composer une silhouette qui vous ressemble.</p>
-          <a routerLink="/catalogue" class="btn">Découvrir la collection
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>
-          </a>
+          <div class="hero-cta">
+            <a routerLink="/catalogue" class="btn">Découvrir la collection
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>
+            </a>
+            @if (account.customer()) { <a routerLink="/mon-compte" class="btn ghost">Mon compte</a> }
+            @else { <a routerLink="/connexion" class="btn ghost">Se connecter</a> }
+          </div>
           <ol class="hero-steps" aria-label="Comment commander">
             <li><b>01</b>Je choisis</li>
             <li><b>02</b>Je confirme</li>
@@ -103,7 +106,7 @@ const UNIVERS = [
     <section class="promise">
       <div class="container">
         <span class="eyebrow">L'esprit de la maison</span>
-        <h2>Bien mise,<br />du lundi au dimanche.</h2>
+        <h2>Votre élégance<br />fait la différence.</h2>
         <p>Le bureau en semaine, le mariage du samedi, la sortie entre amies, la messe du dimanche : pour chaque moment, la pièce qui vous met en valeur. Vous choisissez tranquillement, on vous livre ou vous passez à la boutique.</p>
         <a routerLink="/catalogue" class="btn">Composer ma tenue
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>

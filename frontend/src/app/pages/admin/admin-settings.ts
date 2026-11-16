@@ -27,8 +27,11 @@ const MAX = 2 * 1024 * 1024;
           <input id="pc" type="color" class="color-input" formControlName="primaryColor" aria-describedby="pch" />
           <input class="input" style="max-width:9rem" formControlName="primaryColor" aria-label="Code couleur" maxlength="7" />
           <span class="color-preview" [style.background]="form.controls.primaryColor.value" [style.color]="ink()">Aperçu du bouton</span>
+          @if (!isDefaultColor()) {
+            <button type="button" class="btn ghost sm" (click)="resetColor()"><span class="color-dot" [style.background]="defaultColor" aria-hidden="true"></span>Revenir à la couleur d’origine</button>
+          }
         </div>
-        <span id="pch" class="hint">Format #RRGGBB. Le texte des boutons passe automatiquement en blanc ou en noir pour rester lisible.</span>
+        <span id="pch" class="hint">Couleur d’origine : {{ defaultColor }}. Format #RRGGBB. Le texte des boutons passe automatiquement en blanc ou en noir pour rester lisible.</span>
       </div>
       <button class="btn" type="submit" [disabled]="saving()">Enregistrer</button>
     </form>
@@ -63,6 +66,14 @@ export class AdminSettings implements OnInit {
     shopName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
     primaryColor: ['#0d4f4c', [Validators.required, Validators.pattern(/^#[0-9a-fA-F]{6}$/)]],
   });
+  /** Couleur d'origine du site : le bouton la remet dans le champ ; elle n'est appliquée qu'après « Enregistrer ». */
+  readonly defaultColor = '#0d4f4c';
+  isDefaultColor = () => this.form.controls.primaryColor.value.toLowerCase() === this.defaultColor;
+  resetColor() {
+    this.form.controls.primaryColor.setValue(this.defaultColor);
+    this.form.controls.primaryColor.markAsDirty();
+    this.toast.success('Couleur d’origine remise : cliquez sur Enregistrer pour l’appliquer.');
+  }
   ink = () => (/^#[0-9a-f]{6}$/i.test(this.form.controls.primaryColor.value) ? textColorOn(this.form.controls.primaryColor.value) : '#fff');
 
   async ngOnInit() {

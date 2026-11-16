@@ -3,7 +3,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { ApiService } from './api.service';
 import { ThemeService } from './theme.service';
 
-export interface Customer { id: number; name: string | null; username: string | null; phone: string; theme: 'light' | 'dark'; }
+export interface Customer { id: number; name: string | null; username: string | null; phone: string; email: string | null; theme: 'light' | 'dark'; }
 interface SessionResponse { customer: Customer; csrfToken: string; }
 
 /**
@@ -28,7 +28,7 @@ export class CustomerAuthService {
   }
 
   async login(identifier: string, password: string) { this.start(await this.api.post<SessionResponse>('/customer/login', { identifier, password })); }
-  async register(body: { phone: string; username?: string; name?: string; password: string }) {
+  async register(body: { phone: string; email?: string; username?: string; name?: string; password: string }) {
     this.start(await this.api.post<SessionResponse>('/customer/register', body));
   }
   /** Après un changement de mot de passe, le serveur renvoie une nouvelle session. */

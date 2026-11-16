@@ -3,7 +3,7 @@ const config = require('../config/env');
 const { pool, withTransaction } = require('../config/db');
 const { toCents, fromCents } = require('../utils/money');
 const { generateOrderNumber, generateTrackingCode, TRACKING_CODE_RE, phoneDigits, samePhone, parseJson, paginate } = require('../utils/helpers');
-const { conflict, notFound, badRequest } = require('../utils/errors');
+const { conflict, notFound, badRequest, forbidden } = require('../utils/errors');
 const notify = require('./notifyService');
 const settings = require('./settingsService');
 
@@ -191,17 +191,57 @@ async function resolveAccess({ code, orderNumber, phone }) {
   if (code) {
     if (!TRACKING_CODE_RE.test(code)) throw notFound(ACCESS_DENIED);
     [[o]] = await pool.query('SELECT * FROM orders WHERE tracking_code = ?', [code]);
-  } else if (orderNumber && phone) {
+  } else if (orderNumber) {
+    // Le numéro de commande suffit (choix de la boutique). Si un téléphone est fourni, il doit quand même correspondre.
     [[o]] = await pool.query('SELECT * FROM orders WHERE order_number = ?', [orderNumber]);
-    if (o && !samePhone(o.customer_phone_digits, phone)) o = undefined;
+    if (o && phone && !samePhone(o.customer_phone_digits, phone)) o = undefined;
   }
   if (!o) throw notFound(ACCESS_DENIED);
   await ensureTrackingCode(o);
+  // Accès complet (modifier, facture, code de suivi) : code complet, ou numéro + bon téléphone. Le numéro seul ne permet que de consulter.
+  o._fullAccess = !!(code || phone);
   return o;
+}
+const LIMITED_ACCESS = 'Pour modifier cette commande ou télécharger sa facture, connectez-vous à votre compte ou utilisez le code complet de la commande.';
+/** Refuse une action sensible quand la commande n'a été ouverte qu'avec son numéro. */
+const requireFullAccess = (o) => { if (!o._fullAccess) throw forbidden(LIMITED_ACCESS); return o; };
+
+/** Nom comparable : sans accents ni majuscules, découpé en mots. */
+const nameWords = (v) => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+
+/**
+ * Recherche simple pour le client : téléphone + nom donnés lors de la commande.
+ * Le nom sert de second facteur (le téléphone seul ne suffit jamais). La réponse est volontairement limitée :
+ * statut, date, montant et numéro masqué — ni adresse, ni articles, ni code de suivi, et aucune modification possible.
+ * Pour le détail complet, il faut le code de suivi ou le compte client.
+ */
+async function findByPhoneAndName(phone, name) {
+  const key = phoneDigits(phone);
+  const wanted = nameWords(name);
+  if (key.length < 6 || !wanted.some((w) => w.length >= 3)) return { items: [] };
+  const [rows] = await pool.query(
+    `SELECT o.order_number, o.customer_name, o.customer_phone_digits, o.status, o.payment_status, o.total_amount, o.currency, o.created_at,
+            (SELECT COALESCE(SUM(quantity), 0) FROM order_items WHERE order_id = o.id) AS item_count
+       FROM orders o WHERE o.customer_phone_digits LIKE ? ORDER BY o.created_at DESC, o.id DESC LIMIT 50`, [`%${key.slice(-6)}`]);
+  const items = rows
+    .filter((o) => samePhone(o.customer_phone_digits, phone))
+    // Il suffit qu'un mot du nom saisi (3 lettres ou plus) figure dans le nom donné à la commande : « Awa » retrouve « Awa Koné ».
+    .filter((o) => { const have = new Set(nameWords(o.customer_name)); return wanted.some((w) => w.length >= 3 && have.has(w)); })
+    .slice(0, 10)
+    .map((o) => ({
+      ref: `CMD-••••••${String(o.order_number).slice(-4)}`, status: o.status, paymentStatus: o.payment_status,
+      total: Number(o.total_amount), currency: o.currency, itemCount: Number(o.item_count), createdAt: o.created_at,
+    }));
+  return { items };
 }
 
 async function trackOrder(access) {
-  return formatTracked(await resolveAccess(access));
+  const o = await resolveAccess(access);
+  const t = await formatTracked(o);
+  if (o._fullAccess) return t;
+  // Vue limitée (numéro seul) : statut, articles et montants, sans coordonnées ni code de suivi, et sans modification possible.
+  return { ...t, limited: true, canEdit: false, trackingCode: null, customerName: null, customerGender: null, comment: null,
+    deliveryAddress: null, city: null, latitude: null, longitude: null, locationLabel: null };
 }
 
 async function formatTracked(o) {
@@ -396,7 +436,7 @@ const FIELD_LABELS = {
 
 /** Modification par le client (numéro + téléphone) ; toute modification notifie l'administrateur. */
 async function editByCustomer(access, changes) {
-  const orderId = (await resolveAccess(access)).id;
+  const orderId = requireFullAccess(await resolveAccess(access)).id;
 
   await withTransaction(async (conn) => {
     const [rows] = await conn.query('SELECT * FROM orders WHERE id = ? FOR UPDATE', [orderId]);
@@ -604,4 +644,4 @@ async function searchSellableVariants(q) {
   return rows.map((v) => ({ variantId: v.id, productName: v.name, sku: v.sku, attributes: parseJson(v.attributes_json), price: Number(v.price), stock: Number(v.stock_quantity) }));
 }
 
-module.exports = { resolveAccess, ensureTrackingCode, formatTracked, ACCESS_DENIED, adminEditOrder, searchSellableVariants, editByCustomer, prepareConfirmation, setDeliveryFee, createOrder, trackOrder, listOrders, getOrder, changeStatus, setPayment, TRANSITIONS, TODO_STATUSES };
+module.exports = { resolveAccess, requireFullAccess, ensureTrackingCode, formatTracked, ACCESS_DENIED, adminEditOrder, searchSellableVariants, editByCustomer, prepareConfirmation, setDeliveryFee, createOrder, trackOrder, findByPhoneAndName, listOrders, getOrder, changeStatus, setPayment, TRANSITIONS, TODO_STATUSES };

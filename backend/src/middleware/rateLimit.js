@@ -12,6 +12,7 @@ const make = (windowMs, max, message) =>
 module.exports = {
   loginLimiter: make(15 * 60 * 1000, 10, 'Trop de tentatives de connexion. Réessayez dans quelques minutes.'),
   customerLoginLimiter: make(15 * 60 * 1000, 10, 'Trop de tentatives de connexion. Réessayez dans quelques minutes.'),
+  resetLimiter: make(60 * 60 * 1000, 5, 'Trop de demandes de réinitialisation. Réessayez plus tard.'),
   registerLimiter: make(60 * 60 * 1000, 5, 'Trop de comptes créés depuis cette connexion. Réessayez plus tard.'),
   apiLimiter: make(60 * 1000, 300, 'Trop de requêtes. Réessayez dans un instant.'),
   orderLimiter: make(10 * 60 * 1000, 30, 'Trop de commandes envoyées. Réessayez plus tard.'),

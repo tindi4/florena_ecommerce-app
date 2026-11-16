@@ -18,15 +18,24 @@ export class CartService {
     try { localStorage.setItem(KEY, JSON.stringify(lines)); } catch { /* stockage indisponible */ }
   }
 
+  /** Panneau latéral « Votre sélection » : il s'ouvre après chaque ajout pour guider le client. */
+  readonly drawerOpen = signal(false);
+  /** Dernier article ajouté (mis en avant en haut du panneau). */
+  readonly lastAdded = signal<number | null>(null);
+  openDrawer() { this.drawerOpen.set(true); }
+  closeDrawer() { this.drawerOpen.set(false); }
+
   add(line: CartLine, max: number) {
     const lines = [...this.lines()];
     const i = lines.findIndex((l) => l.variantId === line.variantId);
-    if (i >= 0) lines[i] = { ...lines[i], price: line.price, quantity: Math.min(max, lines[i].quantity + line.quantity) };
-    else lines.push({ ...line, quantity: Math.min(max, line.quantity) });
+    if (i >= 0) lines[i] = { ...lines[i], price: line.price, max, quantity: Math.min(max, lines[i].quantity + line.quantity) };
+    else lines.push({ ...line, max, quantity: Math.min(max, line.quantity) });
     this.write(lines);
+    this.lastAdded.set(line.variantId);
+    this.openDrawer();
   }
   setQuantity(variantId: number, quantity: number) {
-    this.write(this.lines().map((l) => (l.variantId === variantId ? { ...l, quantity: Math.max(1, Math.min(99, quantity)) } : l)));
+    this.write(this.lines().map((l) => (l.variantId === variantId ? { ...l, quantity: Math.max(1, Math.min(l.max ?? 99, 99, quantity)) } : l)));
   }
   update(variantId: number, patch: Partial<CartLine>) {
     this.write(this.lines().map((l) => (l.variantId === variantId ? { ...l, ...patch } : l)));

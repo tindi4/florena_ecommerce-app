@@ -12,9 +12,13 @@ import { ConfigService } from '../../core/config.service';
   template: `
     <div class="login-page">
       <aside class="login-art" aria-hidden="true">
-        <img src="img/hero-still.svg" alt="" />
-        <div class="login-art-top"><span class="brand-mark">{{ cfg.shopName().charAt(0) }}</span><strong>{{ cfg.shopName() }}</strong></div>
-        <p class="login-art-tag">Votre boutique,<br />bien tenue.</p>
+        <span class="login-ring r1"></span><span class="login-ring r2"></span><span class="login-ring r3"></span>
+        <div class="login-art-center">
+          <span class="login-mark">{{ cfg.shopName().charAt(0) }}</span>
+          <p class="login-art-tag">Espace administrateur</p>
+          <span class="login-rule"></span>
+          <span class="login-shop">{{ cfg.shopName() }}</span>
+        </div>
       </aside>
       <div class="login-panel">
         <form class="login-card" [formGroup]="form" (ngSubmit)="submit()" novalidate>

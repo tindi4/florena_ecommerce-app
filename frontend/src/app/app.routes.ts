@@ -46,6 +46,8 @@ export const routes: Routes = [
       { path: 'confirmation/:number', title: 'Commande enregistrée', loadComponent: () => import('./pages/public/confirmation').then((m) => m.Confirmation) },
       { path: 'suivi', title: 'Suivre ma commande', loadComponent: () => import('./pages/public/track').then((m) => m.Track) },
       { path: 'connexion', title: 'Mon compte : connexion', loadComponent: () => import('./pages/public/customer-login').then((m) => m.CustomerLogin) },
+      { path: 'mot-de-passe-oublie', title: 'Mot de passe oublié', loadComponent: () => import('./pages/public/forgot-password').then((m) => m.ForgotPassword) },
+      { path: 'reinitialiser', title: 'Nouveau mot de passe', loadComponent: () => import('./pages/public/reset-password').then((m) => m.ResetPassword) },
       { path: 'mon-compte', title: 'Mon compte', canActivate: [customerGuard], loadComponent: () => import('./pages/public/account').then((m) => m.Account) },
       { path: 'contact', title: 'Nous écrire', loadComponent: () => import('./pages/public/contact').then((m) => m.Contact) },
       { path: '**', title: 'Page introuvable', loadComponent: () => import('./pages/public/not-found').then((m) => m.NotFound) },

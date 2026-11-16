@@ -23,8 +23,8 @@ async function loadOrder(where, params) {
 
 /** Facture pour le client : code complet, ou numéro + téléphone (même contrôle que le suivi). */
 async function forCustomer(access) {
-  const { resolveAccess } = require('./orderService');   // require ici : évite une dépendance circulaire au chargement
-  const order = await resolveAccess(access);
+  const { resolveAccess, requireFullAccess } = require('./orderService');   // require ici : évite une dépendance circulaire au chargement
+  const order = requireFullAccess(await resolveAccess(access));   // la facture contient l'adresse et le téléphone
   return render(await loadOrder('id = ?', [order.id]));
 }
 /** Facture d'une commande appartenant au compte client connecté. */

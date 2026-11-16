@@ -1,7 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toApiError } from '../../core/api.service';
+import { ConfigService } from '../../core/config.service';
 import { CustomerAuthService } from '../../core/customer-auth.service';
 import { MyOrdersService } from '../../core/my-orders.service';
 
@@ -9,9 +10,21 @@ import { MyOrdersService } from '../../core/my-orders.service';
 @Component({
   selector: 'app-customer-login',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   template: `
-    <div class="container section narrow">
+    <div class="container auth-split" [class.is-register]="mode() === 'register'">
+      <aside class="auth-side">
+        <span class="auth-deco" aria-hidden="true"></span>
+        <span class="eyebrow">Espace client</span>
+        <h1>{{ mode() === 'login' ? 'Heureux de vous revoir' : 'Bienvenue chez ' + cfg.shopName() }}</h1>
+        <p>{{ mode() === 'login' ? 'Connectez-vous pour retrouver vos commandes et leur suivi.' : 'Une minute suffit pour créer votre compte.' }}</p>
+        <ul class="auth-perks">
+          @for (p of perks; track p) {
+            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>{{ p }}</li>
+          }
+        </ul>
+      </aside>
+      <div class="auth-main">
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" [class.on]="mode() === 'login'" [attr.aria-selected]="mode() === 'login'" (click)="switch('login')">Se connecter</button>
         <button class="tab" role="tab" [class.on]="mode() === 'register'" [attr.aria-selected]="mode() === 'register'" (click)="switch('register')">Créer un compte</button>
@@ -19,24 +32,25 @@ import { MyOrdersService } from '../../core/my-orders.service';
 
       @if (mode() === 'login') {
         <form class="card" [formGroup]="loginForm" (ngSubmit)="login()" novalidate>
-          <h1>Mon compte</h1>
           @if (error()) { <div class="notice error" role="alert">{{ error() }}</div> }
           <div class="field"><label for="li">Téléphone ou nom d'utilisateur</label>
             <input id="li" class="input" formControlName="identifier" autocomplete="username" autocapitalize="none" /></div>
           <div class="field"><label for="lp">Mot de passe</label>
-            <input id="lp" class="input" type="password" formControlName="password" autocomplete="current-password" /></div>
+            <input id="lp" class="input" type="password" formControlName="password" autocomplete="current-password" />
+            <a class="auth-forgot" routerLink="/mot-de-passe-oublie">Mot de passe oublié ?</a></div>
           <button class="btn block" type="submit" [disabled]="busy()">Se connecter</button>
           <p class="hint mt-s">Vous avez commandé sans compte ? Créez-en un avec le même téléphone : vos commandes passées sur cet appareil y seront rattachées.</p>
         </form>
       } @else {
         <form class="card" [formGroup]="regForm" (ngSubmit)="register()" novalidate>
-          <h1>Créer mon compte</h1>
-          <p class="muted">Une minute suffit. Vos commandes seront réunies au même endroit, et votre nom et votre téléphone déjà remplis la prochaine fois.</p>
           @if (lastOrder; as o) { <p class="notice info">Votre commande <strong>{{ o.orderNumber }}</strong> sera ajoutée à votre compte dès sa création : vous la retrouverez dans « Mes commandes », sans code à retenir.</p> }
           @if (error()) { <div class="notice error" role="alert">{{ error() }}</div> }
           <div class="field"><label for="rp">Téléphone</label>
             <input id="rp" class="input" type="tel" inputmode="tel" formControlName="phone" autocomplete="tel" />
             <span class="hint">@if (lastOrder) { C'est le numéro donné pour votre commande : gardez-le pour qu'elle soit rattachée à votre compte. } @else { Utilisez le numéro donné lors de vos commandes. }</span></div>
+          <div class="field"><label for="re">Adresse e-mail <span class="muted">(conseillée)</span></label>
+            <input id="re" class="input" type="email" inputmode="email" formControlName="email" autocomplete="email" />
+            <span class="hint">Pour recevoir un lien si vous oubliez votre mot de passe. Elle ne sert à rien d'autre.</span></div>
           <div class="field"><label for="ru">Nom d'utilisateur <span class="muted">(facultatif)</span></label>
             <input id="ru" class="input" formControlName="username" autocomplete="username" autocapitalize="none" />
             <span class="hint">3 à 30 caractères : lettres, chiffres, point, tiret. Permet de se connecter sans le téléphone.</span></div>
@@ -49,6 +63,7 @@ import { MyOrdersService } from '../../core/my-orders.service';
           <button class="btn block" type="submit" [disabled]="busy()">Créer mon compte</button>
         </form>
       }
+      </div>
     </div>`,
 })
 export class CustomerLogin {
@@ -56,6 +71,8 @@ export class CustomerLogin {
   private auth = inject(CustomerAuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  cfg = inject(ConfigService);
+  perks = ['Toutes vos commandes au même endroit', 'Le suivi en direct, sans code à retenir', 'Vos coordonnées déjà prêtes pour commander'];
   /** Dernière commande passée sur cet appareil : son téléphone est proposé d'office, pour qu'elle rejoigne le compte dès sa création. */
   lastOrder = inject(MyOrdersService).orders()[0] ?? null;
   /** « /connexion?mode=creer » ouvre directement l'onglet de création de compte. */
@@ -64,7 +81,7 @@ export class CustomerLogin {
   loginForm = this.fb.nonNullable.group({ identifier: ['', Validators.required], password: ['', Validators.required] });
   regForm = this.fb.nonNullable.group({
     phone: [this.lastOrder?.phone ?? '', [Validators.required, Validators.pattern(/^[+0-9 ().-]{6,25}$/)]],
-    username: [''], name: [''],
+    email: ['', Validators.email], username: [''], name: [''],
     password: ['', [Validators.required, Validators.minLength(8)]], confirm: ['', Validators.required],
   });
 
@@ -77,9 +94,10 @@ export class CustomerLogin {
   async register() {
     const v = this.regForm.getRawValue();
     if (this.regForm.controls.phone.invalid) { this.error.set('Numéro de téléphone invalide.'); return; }
+    if (this.regForm.controls.email.invalid) { this.error.set('Adresse e-mail invalide.'); return; }
     if (this.regForm.controls.password.invalid) { this.error.set('Mot de passe : 8 caractères minimum.'); return; }
     if (v.password !== v.confirm) { this.error.set('Les deux mots de passe ne correspondent pas.'); return; }
-    await this.run(() => this.auth.register({ phone: v.phone, username: v.username.trim() || undefined, name: v.name.trim() || undefined, password: v.password }));
+    await this.run(() => this.auth.register({ phone: v.phone, email: v.email.trim() || undefined, username: v.username.trim() || undefined, name: v.name.trim() || undefined, password: v.password }));
   }
   private async run(fn: () => Promise<void>) {
     this.busy.set(true); this.error.set('');

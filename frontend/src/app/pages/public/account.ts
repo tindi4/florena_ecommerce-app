@@ -1,8 +1,9 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService, toApiError } from '../../core/api.service';
+import { AvatarService } from '../../core/avatar.service';
 import { ConfigService } from '../../core/config.service';
 import { CustomerAuthService } from '../../core/customer-auth.service';
 import { AccountOrder, OrderStatus, STATUS_LABELS } from '../../core/models';
@@ -16,7 +17,6 @@ import { PayBadge, StatusBadge } from '../../shared/status-badge';
 interface ClaimResult { claimed: string[]; alreadyMine: string[]; refused: string[]; }
 interface News { orderNumber: string; trackingCode: string; text: string; }
 
-const AVATAR_KEY = 'boutique.avatar.v1';   // photo de profil, gardée sur l'appareil uniquement
 const SEEN_KEY = 'boutique.seen.v1';       // dernier statut vu de chaque commande (pour la cloche)
 const ALERT_KEY = 'boutique.alerts.v1';    // alertes du navigateur activées sur cet appareil
 /** Étapes d'une commande, dans l'ordre (une commande annulée n'affiche pas de progression). */
@@ -40,7 +40,7 @@ const write = (key: string, value: unknown) => { try { localStorage.setItem(key,
         <div class="acct-id">
           <span class="eyebrow">Mon compte</span>
           <h1>Bonjour {{ me()?.name || me()?.username || '' }}</h1>
-          <p class="muted">{{ me()?.phone }}</p>
+          <p class="muted">{{ me()?.phone }} · <button type="button" class="link-btn" (click)="logout()">Se déconnecter</button></p>
         </div>
         <div class="acct-bell-wrap">
           <button type="button" class="acct-bell" (click)="toggleBell()" [attr.aria-expanded]="bellOpen()" [attr.aria-label]="news().length + ' nouveauté(s) sur vos commandes'">
@@ -142,6 +142,10 @@ const write = (key: string, value: unknown) => { try { localStorage.setItem(key,
           <p class="hint mt-s">La photo reste sur cet appareil : elle n'est pas envoyée à la boutique.</p>
         </section>
 
+        @if (!me()?.email) {
+          <p class="notice info mt">Ajoutez une adresse e-mail dans « Mon profil » ci-dessous : elle vous permettra de retrouver votre compte si vous oubliez votre mot de passe.</p>
+        }
+
         <section class="card mt">
           <h2>Alertes</h2>
           <label class="check"><input type="checkbox" [checked]="alerts()" (change)="toggleAlerts()" /> M'alerter sur cet appareil quand une commande change de statut</label>
@@ -160,6 +164,8 @@ const write = (key: string, value: unknown) => { try { localStorage.setItem(key,
           <h2>Mon profil</h2>
           @if (profileError()) { <div class="notice error" role="alert">{{ profileError() }}</div> }
           <div class="field"><label for="pn">Nom affiché</label><input id="pn" class="input" formControlName="name" autocomplete="name" /></div>
+          <div class="field"><label for="pe">Adresse e-mail</label><input id="pe" class="input" type="email" formControlName="email" autocomplete="email" inputmode="email" />
+            <span class="hint">Elle sert uniquement à retrouver votre compte si vous oubliez votre mot de passe.</span></div>
           <div class="field"><label for="pu">Nom d'utilisateur</label><input id="pu" class="input" formControlName="username" autocapitalize="none" autocomplete="username" />
             <span class="hint">3 à 30 caractères (lettres, chiffres, point, tiret). Laissez vide pour vous connecter uniquement avec le téléphone.</span></div>
           <button class="btn" type="submit">Enregistrer</button>
@@ -197,7 +203,8 @@ export class Account implements OnInit, OnDestroy {
   done = computed(() => this.orders().filter((o) => o.status === 'TERMINEE').length);
   initial = computed(() => (this.me()?.name || this.me()?.username || this.me()?.phone || '?').trim().charAt(0).toUpperCase());
 
-  avatar = signal<string | null>(read<string | null>(AVATAR_KEY, null));
+  private avatars = inject(AvatarService);
+  avatar = this.avatars.avatar;   // photo de profil : gardée sur l'appareil, partagée avec l'en-tête du site
   alerts = signal<boolean>(read<boolean>(ALERT_KEY, false) && typeof Notification !== 'undefined' && Notification.permission === 'granted');
   /** Changements de statut depuis la dernière ouverture de la cloche. */
   news = signal<News[]>([]);
@@ -205,21 +212,23 @@ export class Account implements OnInit, OnDestroy {
   shown = signal<News[]>([]);
   bellOpen = signal(false);
   private timer?: ReturnType<typeof setInterval>;
+  /** /mon-compte?vue=reglages ouvre directement l'onglet Réglages (lien du menu de l'en-tête). */
+  private viewSub = inject(ActivatedRoute).queryParamMap.subscribe((q) => this.view.set(q.get('vue') === 'reglages' ? 'settings' : 'orders'));
 
   claimError = signal(''); profileError = signal(''); pwError = signal('');
   claimForm = this.fb.nonNullable.group({ ref: ['', Validators.required] });
-  profileForm = this.fb.nonNullable.group({ username: [''], name: [''] });
+  profileForm = this.fb.nonNullable.group({ username: [''], name: [''], email: ['', Validators.email] });
   pwForm = this.fb.nonNullable.group({ currentPassword: ['', Validators.required], newPassword: ['', [Validators.required, Validators.minLength(8)]], confirm: [''] });
 
   async ngOnInit() {
     const c = this.me();
-    this.profileForm.reset({ username: c?.username ?? '', name: c?.name ?? '' });
+    this.profileForm.reset({ username: c?.username ?? '', name: c?.name ?? '', email: c?.email ?? '' });
     await this.claimDeviceOrders();
     await this.load();
     // Tant que la page est ouverte, le statut des commandes est relu chaque minute (cloche et alertes).
     this.timer = setInterval(() => this.load(true), 60000);
   }
-  ngOnDestroy() { clearInterval(this.timer); }
+  ngOnDestroy() { clearInterval(this.timer); this.viewSub.unsubscribe(); }
 
   step(o: AccountOrder) { return STEPS.indexOf(o.status) + 1; }
   names(o: AccountOrder) {
@@ -283,12 +292,12 @@ export class Account implements OnInit, OnDestroy {
       canvas.getContext('2d')!.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
       const data = canvas.toDataURL('image/jpeg', 0.85);
       URL.revokeObjectURL(url);
-      this.avatar.set(data); write(AVATAR_KEY, data); this.toast.success('Photo mise à jour.');
+      this.avatars.set(data); this.toast.success('Photo mise à jour.');
     };
     img.onerror = () => { URL.revokeObjectURL(url); this.toast.error('Image illisible : essayez-en une autre.'); };
     img.src = url;
   }
-  removeAvatar() { this.avatar.set(null); try { localStorage.removeItem(AVATAR_KEY); } catch { /* ignore */ } }
+  removeAvatar() { this.avatars.clear(); }
 
   /** Les commandes passées en invité sur cet appareil sont rattachées automatiquement (si même téléphone). */
   private async claimDeviceOrders() {
@@ -320,8 +329,9 @@ export class Account implements OnInit, OnDestroy {
   async saveProfile() {
     this.profileError.set('');
     const v = this.profileForm.getRawValue();
+    if (this.profileForm.controls.email.invalid) { this.profileError.set('Adresse e-mail invalide.'); return; }
     try {
-      const r = await this.api.patch<{ customer: any }>('/account/profile', { username: v.username.trim(), name: v.name.trim() });
+      const r = await this.api.patch<{ customer: any }>('/account/profile', { username: v.username.trim(), name: v.name.trim(), email: v.email.trim() });
       this.auth.customer.set(r.customer); this.toast.success('Profil enregistré.');
     } catch (e) { const err = toApiError(e); this.profileError.set(err.details?.[0]?.message ?? err.message); }
   }

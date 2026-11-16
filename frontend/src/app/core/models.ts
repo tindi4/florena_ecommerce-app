@@ -16,6 +16,8 @@ export interface ProductDetail {
 }
 export interface CartLine {
   variantId: number; slug: string; name: string; imageUrl: string | null; attributes: Attributes; price: number; quantity: number;
+  /** Stock connu au moment de l'ajout (confort d'affichage ; le serveur revérifie). */
+  max?: number;
 }
 export interface CartCheckItem {
   variantId: number; available: boolean; reason?: string | null; price?: number; stock?: number; productName?: string;
@@ -23,6 +25,8 @@ export interface CartCheckItem {
 }
 export interface OrderItem { id: number; variantId?: number | null; name: string; sku: string | null; attributes: Attributes; imageUrl: string | null; quantity: number; unitPrice: number; lineTotal: number; }
 export interface TrackedOrder {
+  /** true quand la commande a été ouverte avec son seul numéro : consultation, sans coordonnées ni modification. */
+  limited?: boolean;
   orderNumber: string; trackingCode: string; hasAccount: boolean; status: OrderStatus; paymentStatus: PaymentStatus; paidAt: string | null; createdAt: string; total: number; currency: string;
   subtotal: number; deliveryFee: number; deliveryFeeStatus: DeliveryFeeStatus; deliveryRequested: boolean; deliveryFeeAccepted: boolean;
   canEdit: boolean; customerGender: 'HOMME' | 'FEMME' | null; comment: string | null;

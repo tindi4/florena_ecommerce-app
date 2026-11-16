@@ -25,6 +25,10 @@ exports.createOrder = asyncHandler(async (req, res) => {
   const result = await orders.createOrder(input, req.get('idempotency-key'), req.customer ? req.customer.id : null);
   res.status(result.duplicate ? 200 : 201).json(result);
 });
+exports.findOrders = asyncHandler(async (req, res) => {
+  const { phone, name } = s.findOrders.parse(req.body);
+  res.json(await orders.findByPhoneAndName(phone, name));
+});
 exports.trackOrder = asyncHandler(async (req, res) => {
   res.json(await orders.trackOrder(s.trackOrder.parse(req.body)));
 });

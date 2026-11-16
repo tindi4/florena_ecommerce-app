@@ -48,6 +48,15 @@ module.exports = {
     // Numéro WhatsApp de la boutique (format international sans +), pour « Continuer sur WhatsApp ».
     whatsapp: (process.env.SHOP_WHATSAPP || '').replace(/\D/g, ''),
   },
+  // E-mails (mot de passe oublié). Sans SMTP_HOST, rien n'est envoyé : voir .env.example.
+  mail: {
+    host: process.env.SMTP_HOST || '',
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: process.env.SMTP_SECURE === 'true',          // true pour le port 465
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASSWORD || '',
+    from: process.env.MAIL_FROM || process.env.SMTP_USER || '',
+  },
   // Livraison : le client la demande ; l'administrateur fixe ensuite le montant (suggestion : 1000).
   delivery: { suggestedFee: Number(process.env.DELIVERY_FEE_SUGGESTED || 1000) },
   // Messages WhatsApp / SMS : indicatif pays ajouté aux numéros locaux (228 = Togo) et adresse publique du site.

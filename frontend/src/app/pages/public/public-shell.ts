@@ -1,13 +1,15 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { ConfigService } from '../../core/config.service';
 import { CartService } from '../../core/cart.service';
+import { AvatarService } from '../../core/avatar.service';
 import { CustomerAuthService } from '../../core/customer-auth.service';
+import { CartDrawer } from '../../shared/cart-drawer';
 
 @Component({
   selector: 'app-public-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CartDrawer],
   template: `
     <a class="skip" href="#main">Aller au contenu</a>
     @if (showAnnounce()) {
@@ -39,9 +41,26 @@ import { CustomerAuthService } from '../../core/customer-auth.service';
           <input #q id="q" class="input" type="search" placeholder="Rechercher un produit…" maxlength="80" />
         </form>
         <div class="hdr-actions">
-          <a [routerLink]="account.customer() ? '/mon-compte' : '/connexion'" routerLinkActive="on" class="hdr-icon" [attr.aria-label]="account.customer() ? 'Mon compte' : 'Connexion'" [attr.title]="account.customer() ? 'Mon compte' : 'Se connecter ou créer un compte'">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.700" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-          </a>
+          @if (account.customer(); as c) {
+            <div class="acct-menu-wrap">
+              <button type="button" class="hdr-icon" [class.on]="menuOpen()" (click)="$event.stopPropagation(); menuOpen.set(!menuOpen())" [attr.aria-expanded]="menuOpen()" aria-haspopup="menu" aria-label="Mon compte" title="Mon compte">
+                @if (avatar.avatar(); as photo) { <img class="hdr-avatar" [src]="photo" alt="" /> }
+                @else { <span class="hdr-avatar" aria-hidden="true">{{ (c.name || c.username || c.phone).trim().charAt(0) }}</span> }
+              </button>
+              @if (menuOpen()) {
+                <div class="acct-menu" role="menu" (click)="$event.stopPropagation()">
+                  <div class="acct-menu-id"><strong>{{ c.name || c.username || 'Mon compte' }}</strong><span>{{ c.phone }}</span></div>
+                  <a role="menuitem" routerLink="/mon-compte" (click)="menuOpen.set(false)">Mes commandes</a>
+                  <a role="menuitem" routerLink="/mon-compte" [queryParams]="{vue: 'reglages'}" (click)="menuOpen.set(false)">Réglages</a>
+                  <button role="menuitem" type="button" class="acct-menu-out" (click)="logout()">Se déconnecter</button>
+                </div>
+              }
+            </div>
+          } @else {
+            <a routerLink="/connexion" routerLinkActive="on" class="hdr-icon" aria-label="Connexion" title="Se connecter ou créer un compte">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+            </a>
+          }
           <a routerLink="/panier" routerLinkActive="on" class="hdr-icon cart-link" aria-label="Panier" title="Panier">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.700" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
             <span class="cart-count" [class.has]="cart.count() > 0" [class.bump]="bump()">{{ cart.count() }}</span>
@@ -50,6 +69,7 @@ import { CustomerAuthService } from '../../core/customer-auth.service';
       </div>
     </header>
     <main id="main"><router-outlet /></main>
+    <app-cart-drawer />
     <footer class="site-footer">
       <div class="container foot">
         <div>
@@ -81,6 +101,11 @@ export class PublicShell {
   cfg = inject(ConfigService);
   cart = inject(CartService);
   account = inject(CustomerAuthService);
+  avatar = inject(AvatarService);
+  /** Petit menu sous l'avatar : il se ferme au clic ailleurs et à chaque changement de page. */
+  menuOpen = signal(false);
+  @HostListener('document:click') closeMenu() { this.menuOpen.set(false); }
+  async logout() { this.menuOpen.set(false); await this.account.logout(); await this.router.navigate(['/']); }
   private router = inject(Router);
   year = new Date().getFullYear();
   bump = signal(false);
@@ -90,7 +115,7 @@ export class PublicShell {
   waLink = () => this.cfg.whatsappLink(`Bonjour ${this.cfg.shopName()}, j'ai une question.`);
   constructor() {
     this.account.restore();   // affiche « Mon compte » si une session client existe déjà
-    this.router.events.subscribe((e) => { if (e instanceof NavigationEnd) this.url.set(e.urlAfterRedirects); });
+    this.router.events.subscribe((e) => { if (e instanceof NavigationEnd) { this.url.set(e.urlAfterRedirects); this.menuOpen.set(false); } });
     let first = true;
     effect(() => {
       this.cart.count();

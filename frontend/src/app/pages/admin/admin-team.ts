@@ -18,10 +18,11 @@ interface TeamResponse { items: StaffUser[]; roles: StaffRoleDef[]; permissions:
   standalone: true,
   imports: [ReactiveFormsModule, DatePipe, ConfirmDialog],
   template: `
-    <h1>Équipe</h1>
+    <div class="adm-head"><h1>Équipe</h1><p class="muted">Les comptes de votre équipe et ce que chacun a le droit de faire.</p></div>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" [class.on]="tab() === 'users'" [attr.aria-selected]="tab() === 'users'" (click)="tab.set('users')">Comptes</button>
       <button class="tab" role="tab" [class.on]="tab() === 'roles'" [attr.aria-selected]="tab() === 'roles'" (click)="tab.set('roles')">Rôles et permissions</button>
+      <button class="tab" role="tab" [class.on]="tab() === 'overview'" [attr.aria-selected]="tab() === 'overview'" (click)="tab.set('overview')">Vue d'ensemble</button>
     </div>
 
     @if (loading()) { <div class="spinner"></div> }
@@ -56,7 +57,7 @@ interface TeamResponse { items: StaffUser[]; roles: StaffRoleDef[]; permissions:
               <button class="btn sm" [class.danger-ghost]="u.isActive" [class.ghost]="!u.isActive" (click)="u.isActive ? askOff.set(u) : toggle(u, true)">{{ u.isActive ? 'Désactiver' : 'Réactiver' }}</button> }</td>
           </tr>
         }</tbody></table></div></div>
-    } @else {
+    } @else if (tab() === 'roles') {
       <form class="card" [formGroup]="roleForm" (ngSubmit)="saveRole()" novalidate>
         <div class="row between wrap gap">
           <h2>{{ editingRole() ? 'Modifier le rôle « ' + editingRole()!.name + ' »' : 'Nouveau rôle' }}</h2>
@@ -89,24 +90,27 @@ interface TeamResponse { items: StaffUser[]; roles: StaffRoleDef[]; permissions:
         </div>
       </form>
 
-      <div class="stack mt">
+      <p class="hint mt-s">Pour modifier ou supprimer un rôle existant, ouvrez l'onglet « Vue d'ensemble ».</p>
+    } @else {
+      <div class="role-list">
         @for (r of roles(); track r.id) {
-          <div class="card flat role-card">
-            <div class="row between wrap gap">
-              <div><strong>{{ r.name }}</strong>
-                @if (r.isSystem) { <span class="badge st-CONFIRMEE">Verrouillé</span> } @else if (r.isTemplate) { <span class="badge">Modèle</span> }
-                <div class="muted small">{{ r.description || '' }} · {{ r.userCount }} compte(s)</div></div>
-              @if (!r.isSystem) {
-                <div class="row gap">
-                  <button class="btn ghost sm" type="button" [disabled]="r.id === me()?.roleId && !me()?.isMain" (click)="editRole(r)">Modifier</button>
-                  <button class="btn danger-ghost sm" type="button" (click)="askDelete.set(r)">Supprimer</button>
-                </div>
-              }
+          <div class="role-row">
+            <div class="role-row-id">
+              <strong>{{ r.name }}</strong>
+              @if (r.isSystem) { <span class="badge st-CONFIRMEE">Verrouillé</span> } @else if (r.isTemplate) { <span class="badge">Modèle</span> }
+              <span class="muted small">{{ r.userCount }} compte{{ r.userCount > 1 ? 's' : '' }}</span>
             </div>
-            <div class="role-perms">@for (p of r.permissions; track p) { <span class="badge">{{ label(p) }}</span> } @empty { <span class="muted small">Aucune permission</span> }</div>
+            @if (r.isSystem) { <span class="muted small">Tous les droits · non modifiable</span> }
+            @else {
+              <div class="row gap">
+                <button class="btn ghost sm" type="button" [disabled]="r.id === me()?.roleId && !me()?.isMain" (click)="editRole(r)">Modifier</button>
+                <button class="btn danger-ghost sm" type="button" (click)="askDelete.set(r)">Supprimer</button>
+              </div>
+            }
           </div>
         }
       </div>
+      <p class="hint mt-s">« Modifier » ouvre le rôle dans l'onglet « Rôles et permissions », avec ses cases déjà cochées.</p>
     }
 
     @if (askOff(); as u) { <app-confirm title="Désactiver ce compte ?" [message]="u.name + ' ne pourra plus se connecter. Vous pourrez le réactiver.'" confirmLabel="Désactiver" [danger]="true" (confirm)="toggle(u, false); askOff.set(null)" (cancel)="askOff.set(null)" /> }
@@ -124,7 +128,7 @@ export class AdminTeam implements OnInit {
   private fb = inject(FormBuilder);
   private toast = inject(ToastService);
   me = inject(AuthService).user;
-  tab = signal<'users' | 'roles'>('users');
+  tab = signal<'users' | 'roles' | 'overview'>('users');
   users = signal<StaffUser[]>([]); roles = signal<StaffRoleDef[]>([]); permissions = signal<PermissionDef[]>([]);
   loading = signal(true); saving = signal(false); error = signal(''); roleError = signal('');
   askOff = signal<StaffUser | null>(null); resetFor = signal<StaffUser | null>(null); askDelete = signal<StaffRoleDef | null>(null);
@@ -199,7 +203,7 @@ export class AdminTeam implements OnInit {
     if (!this.roleForm.controls.name.value) this.roleForm.controls.name.setValue(`${r.name} (copie)`);
   }
   editRole(r: StaffRoleDef) {
-    this.editingRole.set(r); this.roleError.set('');
+    this.editingRole.set(r); this.roleError.set(''); this.tab.set('roles');   // depuis « Vue d'ensemble », on bascule sur le formulaire
     this.roleForm.reset({ name: r.name, description: r.description ?? '' });
     this.checked.set(new Set(r.permissions));
     window.scrollTo({ top: 0, behavior: 'smooth' });
