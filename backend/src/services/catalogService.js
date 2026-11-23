@@ -44,7 +44,9 @@ async function listProducts(q) {
   const [rows] = await pool.query(
     `SELECT p.id, p.name, p.slug, p.description, c.name AS category_name, c.slug AS category_slug,
             MIN(v.price) AS price_min, MAX(v.price) AS price_max, SUM(v.stock_quantity) AS total_stock,
-            (SELECT image_url FROM product_images i WHERE i.product_id = p.id ORDER BY i.position, i.id LIMIT 1) AS image_url
+            (SELECT image_url FROM product_images i WHERE i.product_id = p.id ORDER BY i.position, i.id LIMIT 1) AS image_url,
+            (SELECT AVG(r.rating) FROM product_reviews r WHERE r.product_id = p.id AND r.status = 'PUBLIE') AS rating_avg,
+            (SELECT COUNT(*) FROM product_reviews r WHERE r.product_id = p.id AND r.status = 'PUBLIE') AS rating_count
        FROM products p
        LEFT JOIN categories c ON c.id = p.category_id
        JOIN product_variants v ON v.product_id = p.id AND v.is_active = 1
@@ -59,6 +61,7 @@ async function listProducts(q) {
       category: r.category_name ? { name: r.category_name, slug: r.category_slug } : null,
       priceMin: Number(r.price_min), priceMax: Number(r.price_max),
       inStock: Number(r.total_stock) > 0, imageUrl: r.image_url,
+      rating: Number(r.rating_count) ? { average: Math.round(Number(r.rating_avg) * 10) / 10, count: Number(r.rating_count) } : null,
     })),
     page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)),
   };

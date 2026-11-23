@@ -14,6 +14,8 @@ const PERMISSIONS = [
   { key: 'orders.payment', group: 'Commandes', label: 'Marquer payé / non payé' },
   { key: 'orders.notify', group: 'Commandes', label: 'Prévenir le client', hint: 'WhatsApp ou SMS' },
   { key: 'messages', group: 'Clients', label: 'Messages des clients' },
+  { key: 'customers.reset', group: 'Clients', label: 'Mots de passe oubliés', hint: 'Créer un lien de réinitialisation et l’envoyer au client' },
+  { key: 'reviews', group: 'Clients', label: 'Avis clients', hint: 'Publier, refuser, répondre' },
   { key: 'products', group: 'Catalogue', label: 'Produits et catégories', hint: 'Créer, modifier, photos, prix' },
   { key: 'stock', group: 'Catalogue', label: 'Stocks', hint: 'Ajuster les quantités, historique' },
   { key: 'stats', group: 'Gestion', label: 'Statistiques et caisse' },
@@ -26,7 +28,7 @@ const ALL_PERMISSIONS = PERMISSIONS.map((p) => p.key);
 const ORDER_PERMS = ['orders.view', 'orders.edit', 'orders.status', 'orders.fee', 'orders.cancel', 'orders.payment', 'orders.notify', 'messages'];
 const ROLE_TEMPLATES = {
   ADMIN: ALL_PERMISSIONS,
-  MANAGER: [...ORDER_PERMS, 'products', 'stock', 'stats'],
+  MANAGER: [...ORDER_PERMS, 'reviews', 'products', 'stock', 'stats'],
   ORDER_CLERK: ORDER_PERMS,
   CATALOG_CLERK: ['products', 'stock'],
 };

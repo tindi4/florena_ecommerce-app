@@ -36,7 +36,7 @@ after(async () => { await pool.end(); });
 describe('Rôles personnalisables', () => {
   test('catalogue des permissions et 4 modèles par défaut', async () => {
     const r = (await admin.get('/api/admin/roles')).body;
-    assert.equal(r.permissions.length, 13);
+    assert.equal(r.permissions.length, 15);   // + avis clients, mots de passe oubliés
     assert.deepEqual(r.items.filter((x) => x.isTemplate).map((x) => x.code).sort(), ['ADMIN', 'CATALOG_CLERK', 'MANAGER', 'ORDER_CLERK']);
     assert.ok(r.items.find((x) => x.code === 'ADMIN').isSystem);
   });
@@ -95,7 +95,7 @@ describe('Rôles personnalisables', () => {
   test('le compte principal garde TOUS les droits, même si son rôle est vidé en base', async () => {
     await pool.query("DELETE rp FROM role_permissions rp JOIN roles r ON r.id = rp.role_id WHERE r.code = 'ADMIN'");
     const me = await admin.get('/api/auth/me');
-    assert.equal(me.body.user.permissions.length, 13);
+    assert.equal(me.body.user.permissions.length, 15);
     assert.equal((await admin.get('/api/admin/settings')).status, 200);
   });
   test('ancien format accepté : rôle par code de modèle', async () => {

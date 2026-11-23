@@ -222,7 +222,8 @@ const customerProfile = z.object({
   name: z.preprocess((v) => (v === '' ? null : v), trimmed(2, 120, 'Nom').nullable().optional()),
   email: z.preprocess((v) => (v === '' ? null : v), customerEmail.nullable().optional()),
 }).refine((v) => v.username !== undefined || v.name !== undefined || v.email !== undefined, { message: 'Rien à modifier' });
-const customerForgot = z.object({ email: customerEmail });
+// Mot de passe oublié : téléphone ou nom d'utilisateur (jamais le nom affiché).
+const customerForgot = z.object({ identifier: trimmed(3, 60, "Téléphone ou nom d'utilisateur") });
 const customerReset = z.object({
   token: z.string().regex(/^[a-f0-9]{64}$/, 'Lien de réinitialisation invalide'),
   newPassword: customerPassword,
@@ -237,6 +238,18 @@ const claimOrders = z.object({
   orders: z.array(z.preprocess(upper, z.string().max(40))).min(1, 'Indiquez au moins une commande').max(30),
 });
 
+// Avis client (envoyé en multipart : les champs arrivent sous forme de texte).
+const reviewInput = z.object({
+  productSlug: z.string().trim().min(1).max(200),
+  rating: z.coerce.number({ error: 'Choisissez une note' }).int().min(1, 'Choisissez une note de 1 à 5').max(5, 'Choisissez une note de 1 à 5'),
+  comment: trimmed(10, 1000, 'Votre avis'),
+  removePhoto: z.preprocess((v) => v === true || v === 'true' || v === '1', z.boolean()).optional(),
+});
+const reviewModerate = z.object({
+  status: z.enum(['PUBLIE', 'REFUSE', 'EN_ATTENTE'], { error: 'Statut invalide' }).optional(),
+  reply: z.preprocess((v) => (v == null ? v : String(v).trim()), z.string().max(600, 'Réponse trop longue').nullable().optional()),
+}).refine((v) => v.status !== undefined || v.reply !== undefined, { message: 'Rien à modifier' });
+
 const shopSettings = z.object({
   shopName: trimmed(2, 80, 'Nom de la boutique').optional(),
   primaryColor: z.string().trim().regex(/^#[0-9a-fA-F]{6}$/, 'Couleur invalide : format attendu #RRGGBB (ex. #0d4f4c)').optional(),
@@ -246,5 +259,5 @@ module.exports = {
   ORDER_STATUSES, login, createOrder, customerEdit, adminOrderEdit, cartCheck, trackOrder, findOrders, contactMessage, orderStatus, orderPayment,
   product, category, activeFlag, stockAdjust, messageStatus, id, notifyCustomer, deliveryFeeUpdate, statsQuery,
   staffUser, staffUserUpdate, passwordReset, shopSettings, roleInput, roleUpdate,
-  customerRegister, customerLogin, customerProfile, customerPasswordChange, customerPreferences, customerForgot, customerReset, claimOrders, FULL_CODE,
+  customerRegister, customerLogin, customerProfile, customerPasswordChange, customerPreferences, customerForgot, customerReset, claimOrders, FULL_CODE, reviewInput, reviewModerate,
 };

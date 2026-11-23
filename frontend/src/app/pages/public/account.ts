@@ -99,6 +99,16 @@ const write = (key: string, value: unknown) => { try { localStorage.setItem(key,
                   </div>
                   <svg class="acct-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
                 </a>
+                @if (o.status === 'TERMINEE' && reviewable(o).length) {
+                  <div class="acct-review">
+                    <span class="small">Votre avis compte :</span>
+                    @for (it of reviewable(o); track it.slug) {
+                      <a class="acct-review-link" [routerLink]="['/produit', it.slug]" fragment="avis">
+                        <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.8l2.8 5.7 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 2.9 1.1-6.3L2.9 9.4l6.3-.9L12 2.8Z"/></svg>
+                        {{ it.reviewStatus ? 'Voir mon avis' : 'Noter' }} · {{ it.name }}</a>
+                    }
+                  </div>
+                }
                 <button type="button" class="link-btn small" (click)="invoice(o)">Télécharger la facture (PDF)</button>
               </article>
             }
@@ -200,6 +210,8 @@ export class Account implements OnInit, OnDestroy {
   view = signal<'orders' | 'settings'>('orders');
   orders = signal<AccountOrder[]>([]); loading = signal(true);
   active = computed(() => this.orders().filter((o) => o.status !== 'TERMINEE' && o.status !== 'ANNULEE').length);
+  /** Articles d'une commande terminée qu'on peut noter (un lien par article, sans doublon). */
+  reviewable(o: AccountOrder) { const seen = new Set<string>(); return (o.items ?? []).filter((i) => i.slug && !seen.has(i.slug) && seen.add(i.slug)) as { name: string; slug: string; reviewStatus?: string | null }[]; }
   done = computed(() => this.orders().filter((o) => o.status === 'TERMINEE').length);
   initial = computed(() => (this.me()?.name || this.me()?.username || this.me()?.phone || '?').trim().charAt(0).toUpperCase());
 

@@ -7,7 +7,7 @@ const admin = require('../controllers/adminController');
 const cust = require('../controllers/customerController');
 const { requireAdmin, requirePermission, csrfProtect } = require('../middleware/auth');
 const { requireCustomer, optionalCustomer } = require('../middleware/customerAuth');
-const { loginLimiter, customerLoginLimiter, registerLimiter, resetLimiter, orderLimiter, trackLimiter, messageLimiter } = require('../middleware/rateLimit');
+const { loginLimiter, customerLoginLimiter, registerLimiter, resetLimiter, forgotMinuteLimiter, orderLimiter, trackLimiter, messageLimiter, reviewLimiter } = require('../middleware/rateLimit');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1 } });
 // Logo : 2 Mo maximum (le type réel du fichier est contrôlé ensuite par settingsService).
@@ -20,6 +20,7 @@ router.get('/settings', pub.settings);
 router.get('/categories', pub.categories);
 router.get('/products', pub.products);
 router.get('/products/:slug', pub.product);
+router.get('/products/:slug/reviews', pub.productReviews);
 router.post('/cart/check', pub.cartCheck);
 router.post('/orders', orderLimiter, optionalCustomer, pub.createOrder);   // rattachée au compte si le client est connecté
 router.post('/orders/track', trackLimiter, pub.trackOrder);
@@ -32,7 +33,7 @@ router.post('/messages', messageLimiter, pub.contact);
 router.post('/customer/register', registerLimiter, cust.register);
 router.post('/customer/login', customerLoginLimiter, cust.login);
 router.post('/customer/logout', cust.logout);
-router.post('/customer/password/forgot', resetLimiter, cust.forgotPassword);
+router.post('/customer/password/forgot', forgotMinuteLimiter, resetLimiter, cust.forgotPassword);
 router.post('/customer/password/reset', customerLoginLimiter, cust.resetPassword);
 router.get('/customer/me', requireCustomer, cust.me);
 
@@ -45,6 +46,9 @@ acc.post('/orders/claim', trackLimiter, cust.claim);
 acc.patch('/profile', cust.updateProfile);
 acc.post('/password', customerLoginLimiter, cust.changePassword);
 acc.patch('/preferences', cust.preferences);
+acc.get('/reviews/:slug', cust.myReview);
+acc.post('/reviews', reviewLimiter, upload.single('photo'), cust.submitReview);   // photo facultative (5 Mo max)
+acc.delete('/reviews/:slug', cust.deleteReview);
 router.use('/account', acc);
 
 /* Auth */
@@ -72,9 +76,17 @@ a.patch('/orders/:id/payment', P('orders.payment'), admin.setPayment);
 a.patch('/orders/:id/delivery-fee', P('orders.fee'), admin.setDeliveryFee);
 a.post('/orders/:id/notify', P('orders.notify'), admin.notifyCustomer);
 
-a.get('/notifications', P('orders.view', 'messages'), admin.listNotifications);
-a.post('/notifications/read-all', P('orders.view', 'messages'), admin.markAllRead);
-a.patch('/notifications/:id/read', P('orders.view', 'messages'), admin.markRead);
+a.get('/notifications', P('orders.view', 'messages', 'reviews', 'customers.reset'), admin.listNotifications);
+a.post('/notifications/read-all', P('orders.view', 'messages', 'reviews', 'customers.reset'), admin.markAllRead);
+a.patch('/notifications/:id/read', P('orders.view', 'messages', 'reviews', 'customers.reset'), admin.markRead);
+a.get('/reset-requests', P('customers.reset'), admin.listResetRequests);
+a.get('/reset-requests/:id/confirmation', P('customers.reset'), admin.resetConfirmation);   // étape 1 : « cette demande vient-elle de vous ? »
+a.post('/reset-requests/:id/contacted', P('customers.reset'), admin.markResetContacted);
+a.post('/reset-requests/:id/link', P('customers.reset'), admin.createResetLink);     // lien affiché une seule fois, jamais stocké en clair
+a.post('/reset-requests/:id/ignore', P('customers.reset'), admin.ignoreResetRequest);
+a.get('/reviews', P('reviews'), admin.listReviews);
+a.patch('/reviews/:id', P('reviews'), admin.moderateReview);
+a.delete('/reviews/:id', P('reviews'), admin.deleteReview);
 a.get('/messages', P('messages'), admin.listMessages);
 a.patch('/messages/:id/status', P('messages'), admin.setMessageStatus);
 

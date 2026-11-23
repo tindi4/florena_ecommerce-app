@@ -5,7 +5,7 @@ import { ApiService, toApiError } from '../../core/api.service';
 import { CustomerAuthService } from '../../core/customer-auth.service';
 import { ToastService } from '../../core/toast.service';
 
-/** Arrivée depuis le lien reçu par e-mail (/reinitialiser#jeton) : choix du nouveau mot de passe, puis connexion directe. */
+/** Arrivée depuis le lien envoyé par la boutique sur WhatsApp (/reinitialiser/<jeton>) : nouveau mot de passe, puis connexion directe. */
 @Component({
   selector: 'app-reset-password',
   standalone: true,
@@ -16,11 +16,11 @@ import { ToastService } from '../../core/toast.service';
       <h1>Nouveau mot de passe</h1>
       @if (!token) {
         <div class="notice error" role="alert">Ce lien est incomplet ou n'est plus valable.</div>
-        <a class="btn" routerLink="/mot-de-passe-oublie">Demander un nouveau lien</a>
+        <a class="btn" routerLink="/mot-de-passe-oublie">Faire une nouvelle demande</a>
       } @else {
         <p class="muted">Choisissez un nouveau mot de passe. Vos autres appareils seront déconnectés.</p>
         <form class="card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
-          @if (error()) { <div class="notice error" role="alert">{{ error() }} <a routerLink="/mot-de-passe-oublie">Demander un nouveau lien</a></div> }
+          @if (error()) { <div class="notice error" role="alert">{{ error() }} <a routerLink="/mot-de-passe-oublie">Faire une nouvelle demande</a></div> }
           <div class="field"><label for="np">Nouveau mot de passe (8 caractères minimum)</label>
             <input id="np" class="input" type="password" formControlName="password" autocomplete="new-password" /></div>
           <div class="field"><label for="np2">Confirmer le mot de passe</label>
@@ -36,8 +36,9 @@ export class ResetPassword {
   private router = inject(Router);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
-  /** Le jeton est lu après « # » : il n'est jamais envoyé dans une adresse, seulement dans le corps de la requête. */
-  token = /^[a-f0-9]{64}$/.test(inject(ActivatedRoute).snapshot.fragment || '') ? inject(ActivatedRoute).snapshot.fragment! : '';
+  /** Jeton à usage unique (30 min) ; il est envoyé au serveur dans le corps de la requête. */
+  private route = inject(ActivatedRoute).snapshot;
+  token = [this.route.paramMap.get('token') ?? '', this.route.fragment ?? ''].find((t) => /^[a-f0-9]{64}$/.test(t)) ?? '';
   form = this.fb.nonNullable.group({ password: ['', [Validators.required, Validators.minLength(8)]], confirm: [''] });
   busy = signal(false); error = signal('');
 

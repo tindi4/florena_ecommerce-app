@@ -8,6 +8,7 @@ const s = require('../validators/schemas');
 const { asyncHandler } = require('../utils/helpers');
 
 const settingsService = require('../services/settingsService');
+const reviews = require('../services/reviewService');
 
 exports.settings = asyncHandler(async (req, res) => res.json({
   ...(await settingsService.getPublic()),   // shopName, primaryColor, logoUrl (réglés dans l'administration)
@@ -16,6 +17,7 @@ exports.settings = asyncHandler(async (req, res) => res.json({
 exports.categories = asyncHandler(async (req, res) => res.json({ items: await catalog.listCategories() }));
 exports.products = asyncHandler(async (req, res) => res.json(await catalog.listProducts(req.query)));
 exports.product = asyncHandler(async (req, res) => res.json(await catalog.getProductBySlug(String(req.params.slug))));
+exports.productReviews = asyncHandler(async (req, res) => res.json(await reviews.listForProduct(String(req.params.slug), req.query)));
 exports.cartCheck = asyncHandler(async (req, res) => {
   const { items } = s.cartCheck.parse(req.body);
   res.json({ items: await catalog.checkCart(items) });

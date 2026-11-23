@@ -6,11 +6,13 @@ import { CartService } from '../../core/cart.service';
 import { ProductDetail, Variant } from '../../core/models';
 import { buildOptionGroups, findVariant } from '../../core/utils';
 import { ImgPipe, MoneyPipe } from '../../shared/pipes';
+import { ProductReviews } from '../../shared/product-reviews';
+import { Stars } from '../../shared/stars';
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, MoneyPipe, ImgPipe],
+  imports: [RouterLink, MoneyPipe, ImgPipe, ProductReviews, Stars],
   template: `
     <div class="container section">
       @if (loading()) { <div class="spinner" role="status" aria-label="Chargement"></div> }
@@ -32,6 +34,7 @@ import { ImgPipe, MoneyPipe } from '../../shared/pipes';
           <div class="pd-info">
             @if (p.category) { <span class="eyebrow">{{ p.category.name }}</span> }
             <h1>{{ p.name }}</h1>
+            @if (rating(); as r) { @if (r.count) { <a class="pd-rating" href="#avis" (click)="toReviews($event)"><app-stars [value]="r.average ?? 0" [size]="15" /><span>{{ (r.average ?? 0).toString().replace('.', ',') }} · {{ r.count }} avis</span></a> } }
             <p class="price">{{ (selected()?.price ?? minPrice()) | money }}</p>
 
             @for (g of groups(); track g.name) {
@@ -64,6 +67,7 @@ import { ImgPipe, MoneyPipe } from '../../shared/pipes';
             @if (p.description) { <h2 class="mt">Description</h2><p class="desc">{{ p.description }}</p> }
           </div>
         </div>
+        <app-product-reviews [slug]="p.slug" (summary)="rating.set($event)" />
       }
     </div>`,
 })
@@ -81,6 +85,8 @@ export class ProductDetailPage {
   imgIndex = signal(0);
   qty = signal(1);
   selection = signal<Record<string, string>>({});
+  rating = signal<{ average: number | null; count: number } | null>(null);
+  toReviews(e: Event) { e.preventDefault(); document.getElementById('avis')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 
   groups = computed(() => buildOptionGroups(this.product()?.variants ?? []));
   selected = computed<Variant | undefined>(() => { const p = this.product(); return p ? findVariant(p.variants, this.selection()) : undefined; });

@@ -7,6 +7,8 @@ const stats = require('../services/statsService');
 const users = require('../services/userService');
 const settings = require('../services/settingsService');
 const roles = require('../services/roleService');
+const reviews = require('../services/reviewService');
+const resetRequests = require('../services/resetRequestService');
 const s = require('../validators/schemas');
 const { asyncHandler } = require('../utils/helpers');
 const { badRequest, forbidden } = require('../utils/errors');
@@ -14,6 +16,14 @@ const { badRequest, forbidden } = require('../utils/errors');
 const idParam = (req) => s.id.parse(req.params.id);
 const wrap = asyncHandler;
 
+exports.listResetRequests = wrap(async (req, res) => res.json(await resetRequests.list(req.query)));
+exports.resetConfirmation = wrap(async (req, res) => res.json(await resetRequests.confirmationMessage(idParam(req))));
+exports.markResetContacted = wrap(async (req, res) => res.json(await resetRequests.markContacted(idParam(req), req.user.id)));
+exports.createResetLink = wrap(async (req, res) => res.set('Cache-Control', 'no-store').json(await resetRequests.createLink(idParam(req), req.user.id)));
+exports.ignoreResetRequest = wrap(async (req, res) => res.json(await resetRequests.ignore(idParam(req), req.user.id)));
+exports.listReviews = wrap(async (req, res) => res.json(await reviews.adminList(req.query)));
+exports.moderateReview = wrap(async (req, res) => res.json(await reviews.moderate(idParam(req), s.reviewModerate.parse(req.body), req.user.id)));
+exports.deleteReview = wrap(async (req, res) => res.json(await reviews.adminRemove(idParam(req))));
 exports.dashboard = wrap(async (req, res) => res.json(await inbox.dashboard()));
 exports.counters = wrap(async (req, res) => res.json(await inbox.counters()));
 

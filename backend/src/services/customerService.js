@@ -8,7 +8,7 @@ const { unauthorized, conflict, badRequest, notFound } = require('../utils/error
 const { phoneKey, samePhone, TRACKING_CODE_RE } = require('../utils/helpers');
 const { hashPassword } = require('./authService');
 const orders = require('./orderService');
-const mailer = require('../utils/mailer');
+const resetRequests = require('./resetRequestService');
 const logger = require('../utils/logger');
 
 /*
@@ -92,51 +92,25 @@ async function changePassword(customer, currentPassword, newPassword) {
 }
 
 /* ------------------------- Mot de passe oublié ------------------------- */
-const RESET_TTL_MINUTES = 60;
 const sha256 = (v) => crypto.createHash('sha256').update(v).digest('hex');
-const esc = (v) => String(v).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 
 /**
  * Envoie un lien de réinitialisation à l'adresse indiquée, si un compte actif la porte.
  * La réponse est toujours la même : on ne révèle jamais si une adresse est inscrite.
  */
-async function requestPasswordReset(email) {
-  const [[c]] = await pool.query('SELECT id, name, email FROM customers WHERE email = ? AND is_active = 1', [email]);
-  if (!c) return { ok: true };
-  const token = crypto.randomBytes(32).toString('hex');
-  await pool.query('DELETE FROM customer_password_resets WHERE customer_id = ?', [c.id]);   // un seul lien valable à la fois
-  await pool.query(
-    'INSERT INTO customer_password_resets (customer_id, token_hash, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ? MINUTE))',
-    [c.id, sha256(token), RESET_TTL_MINUTES]);
-  // Le jeton est placé après « # » : il reste dans le navigateur et n'apparaît pas dans les journaux du serveur web.
-  const site = config.notify.siteUrl || config.corsOrigins[0];
-  const link = `${site}/reinitialiser#${token}`;
-  const shop = config.shop.name;
-  const hello = c.name ? `Bonjour ${c.name},` : 'Bonjour,';
-  const sent = await mailer.send({
-    to: c.email,
-    subject: `${shop} : réinitialiser votre mot de passe`,
-    text: `${hello}\n\nVous avez demandé à changer le mot de passe de votre compte ${shop}.\nOuvrez ce lien (valable ${RESET_TTL_MINUTES} minutes) pour en choisir un nouveau :\n${link}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.\n\n${shop}`,
-    html: `<p>${esc(hello)}</p><p>Vous avez demandé à changer le mot de passe de votre compte <strong>${esc(shop)}</strong>.</p>
-<p><a href="${esc(link)}" style="display:inline-block;padding:12px 22px;background:#1f4a38;color:#ffffff;text-decoration:none;border-radius:6px">Choisir un nouveau mot de passe</a></p>
-<p style="color:#6b7672;font-size:13px">Ce lien est valable ${RESET_TTL_MINUTES} minutes et ne sert qu'une fois. Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.</p>`,
-  });
-  // En développement, sans SMTP, le lien est écrit dans la console du serveur pour pouvoir tester le parcours.
-  if (!sent && !config.isProd) logger.info('Lien de réinitialisation (développement uniquement)', { link });
-  return { ok: true };
-}
-
 /** Applique le nouveau mot de passe si le lien est valable, ferme les autres sessions et connecte le client. */
 async function resetPassword(token, newPassword) {
   const invalid = () => badRequest('Ce lien n\'est plus valable. Demandez-en un nouveau.');
   const id = await withTransaction(async (conn) => {
     const [[r]] = await conn.query(
-      'SELECT id, customer_id FROM customer_password_resets WHERE token_hash = ? AND used_at IS NULL AND expires_at > NOW() FOR UPDATE', [sha256(token)]);
+      'SELECT id, customer_id, request_id FROM customer_password_resets WHERE token_hash = ? AND used_at IS NULL AND expires_at > NOW() FOR UPDATE', [sha256(token)]);
     if (!r) throw invalid();
     const [[c]] = await conn.query('SELECT id, is_active FROM customers WHERE id = ?', [r.customer_id]);
     if (!c || !c.is_active) throw invalid();
     await conn.query('UPDATE customers SET password_hash = ?, session_version = session_version + 1 WHERE id = ?', [await hashPassword(newPassword), c.id]);
     await conn.query('UPDATE customer_password_resets SET used_at = NOW() WHERE id = ?', [r.id]);
+    await conn.query('DELETE FROM customer_password_resets WHERE customer_id = ? AND used_at IS NULL', [c.id]);
+    await resetRequests.log(conn, { customerId: c.id, requestId: r.request_id || null, action: 'MOT_DE_PASSE_CHANGE' });
     return c.id;
   });
   const [[c]] = await pool.query('SELECT * FROM customers WHERE id = ?', [id]);
@@ -158,10 +132,15 @@ async function listOrders(customerId) {
   const byOrder = new Map();
   if (rows.length) {
     const [lines] = await pool.query(
-      'SELECT order_id, product_name_snapshot AS name, image_snapshot AS image, quantity FROM order_items WHERE order_id IN (?) ORDER BY id', [rows.map((o) => o.id)]);
+      `SELECT i.order_id, i.product_name_snapshot AS name, i.image_snapshot AS image, i.quantity, p.slug, p.is_active AS p_active,
+              (SELECT r.status FROM product_reviews r WHERE r.product_id = p.id AND r.customer_id = ?) AS review_status
+         FROM order_items i LEFT JOIN product_variants v ON v.id = i.product_variant_id LEFT JOIN products p ON p.id = v.product_id
+        WHERE i.order_id IN (?) ORDER BY i.id`, [customerId, rows.map((o) => o.id)]);
     for (const l of lines) {
       if (!byOrder.has(l.order_id)) byOrder.set(l.order_id, []);
-      byOrder.get(l.order_id).push({ name: l.name, imageUrl: l.image || null, quantity: Number(l.quantity) });
+      // slug : lien « Donner mon avis » (article toujours en vente) ; reviewStatus : avis déjà donné.
+      byOrder.get(l.order_id).push({ name: l.name, imageUrl: l.image || null, quantity: Number(l.quantity),
+        slug: l.slug && l.p_active ? l.slug : null, reviewStatus: l.review_status || null });
     }
   }
   return {
@@ -202,4 +181,4 @@ async function claimOrders(customer, refs) {
   return result;
 }
 
-module.exports = { register, login, verifyToken, updateProfile, changePassword, setTheme, listOrders, getOrder, claimOrders, publicCustomer, AUDIENCE, requestPasswordReset, resetPassword };
+module.exports = { register, login, verifyToken, updateProfile, changePassword, setTheme, listOrders, getOrder, claimOrders, publicCustomer, AUDIENCE, resetPassword };

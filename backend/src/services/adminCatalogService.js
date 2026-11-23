@@ -250,5 +250,5 @@ async function stockHistory(variantId) {
 
 module.exports = {
   listCategories, saveCategory, setCategoryActive, listProducts, getProduct, saveProduct, setProductActive,
-  addImage, deleteImage, listStock, adjustStock, stockHistory,
+  addImage, deleteImage, listStock, adjustStock, stockHistory, SIGNATURES,
 };

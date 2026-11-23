@@ -1,6 +1,8 @@
 'use strict';
 const customers = require('../services/customerService');
 const invoices = require('../services/invoiceService');
+const reviews = require('../services/reviewService');
+const resetRequests = require('../services/resetRequestService');
 const s = require('../validators/schemas');
 const { asyncHandler } = require('../utils/helpers');
 const { CUSTOMER_COOKIE, customerCookieOptions } = require('../middleware/customerAuth');
@@ -35,10 +37,13 @@ exports.changePassword = asyncHandler(async (req, res) => {
   // Nouveau jeton : cette session reste ouverte, les autres appareils sont déconnectés.
   startSession(res, await customers.changePassword(req.customer, currentPassword, newPassword));
 });
-// Mot de passe oublié : la réponse est identique que l'adresse soit connue ou non.
-exports.forgotPassword = asyncHandler(async (req, res) => res.json(await customers.requestPasswordReset(s.customerForgot.parse(req.body).email)));
+// Mot de passe oublié : la réponse est identique que le compte existe ou non ; la boutique traite la demande.
+exports.forgotPassword = asyncHandler(async (req, res) => res.status(202).json(await resetRequests.request(s.customerForgot.parse(req.body).identifier)));
 exports.resetPassword = asyncHandler(async (req, res) => {
   const { token, newPassword } = s.customerReset.parse(req.body);
   startSession(res, await customers.resetPassword(token, newPassword));
 });
+exports.myReview = asyncHandler(async (req, res) => res.json(await reviews.myReview(req.customer, String(req.params.slug))));
+exports.submitReview = asyncHandler(async (req, res) => res.status(201).json(await reviews.submit(req.customer, s.reviewInput.parse(req.body || {}), req.file)));
+exports.deleteReview = asyncHandler(async (req, res) => res.json(await reviews.removeMine(req.customer, String(req.params.slug))));
 exports.preferences = asyncHandler(async (req, res) => res.json(await customers.setTheme(req.customer, s.customerPreferences.parse(req.body).theme)));

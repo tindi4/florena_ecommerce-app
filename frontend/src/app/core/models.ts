@@ -8,6 +8,7 @@ export interface Category { id: number; name: string; slug: string; description?
 export interface ProductCard {
   id: number; name: string; slug: string; shortDescription: string; category: { name: string; slug: string } | null;
   priceMin: number; priceMax: number; inStock: boolean; imageUrl: string | null;
+  rating?: { average: number; count: number } | null;
 }
 export interface Variant { id: number; sku: string | null; attributes: Attributes; price: number; stock: number; }
 export interface ProductDetail {
@@ -38,7 +39,7 @@ export interface AdminOrderRow {
   id: number; orderNumber: string; customerName: string | null; customerPhone: string; status: OrderStatus; paymentStatus: PaymentStatus;
   total: number; currency: string; createdAt: string; itemCount: number; isNew: boolean; isUpdated: boolean;
 }
-export interface AccountOrder { items?: { name: string; imageUrl: string | null; quantity: number }[]; orderNumber: string; trackingCode: string; status: OrderStatus; paymentStatus: PaymentStatus; total: number; currency: string; itemCount: number; createdAt: string; }
+export interface AccountOrder { items?: { name: string; imageUrl: string | null; quantity: number; slug?: string | null; reviewStatus?: ReviewStatus | null }[]; orderNumber: string; trackingCode: string; status: OrderStatus; paymentStatus: PaymentStatus; total: number; currency: string; itemCount: number; createdAt: string; }
 export interface AdminOrder {
   id: number; orderNumber: string; trackingCode: string; hasAccount: boolean; status: OrderStatus; paymentStatus: PaymentStatus; paidAt: string | null; paidBy: string | null; paymentNote: string | null;
   customerName: string | null; customerGender: 'HOMME' | 'FEMME' | null; customerPhone: string; deliveryAddress: string; city: string | null; comment: string | null;
@@ -49,8 +50,17 @@ export interface AdminOrder {
   confirmation: { channel: 'WHATSAPP' | 'SMS' | null; sentAt: string | null; defaultMessage: string };
   history: { id: number; type: 'STATUS' | 'PAYMENT' | 'NOTIFY' | 'FEE' | 'EDIT'; from: string | null; to: string; comment: string | null; admin: string | null; at: string }[];
 }
-export interface Counters { unreadNotifications: number; newMessages: number; todoOrders: number; unpaidOrders: number; }
-export interface AdminNotification { id: number; type: 'NEW_ORDER' | 'NEW_MESSAGE' | 'ORDER_UPDATED'; title: string; body: string | null; orderId: number | null; messageId: number | null; isRead: boolean; createdAt: string; }
+export interface Counters { unreadNotifications: number; newMessages: number; todoOrders: number; unpaidOrders: number; pendingReviews?: number; pendingResets?: number; }
+export interface ResetRequest { id: number; status: 'EN_ATTENTE' | 'TRAITEE' | 'IGNOREE'; requestCount: number; createdAt: string; lastRequestedAt: string; contactedAt: string | null; contactedBy: string | null; handledAt: string | null; handledBy: string | null;
+  customer: { id: number; name: string | null; username: string | null; phone: string }; history: { action: 'DEMANDE' | 'CLIENT_CONTACTE' | 'LIEN_CREE' | 'DEMANDE_IGNOREE' | 'MOT_DE_PASSE_CHANGE'; at: string; by: string | null }[]; }
+export interface ResetConfirmation { phone: string; message: string; whatsappUrl: string; contactedAt: string | null; }
+export interface ResetLink { link: string; expiresAt: string; ttlMinutes: number; phone: string; message: string; whatsappUrl: string; }
+export type ReviewStatus = 'EN_ATTENTE' | 'PUBLIE' | 'REFUSE';
+export interface PublicReview { id: number; rating: number; comment: string; photoUrl: string | null; author: string; createdAt: string; reply: string | null; verified: boolean; }
+export interface ReviewSummary { average: number | null; count: number; distribution: Record<string, number>; items: PublicReview[]; page: number; limit: number; totalPages: number; }
+export interface MyReview { canReview: boolean; reason: string | null; review: { id: number; rating: number; comment: string; photoUrl: string | null; status: ReviewStatus; reply: string | null; updatedAt: string } | null; }
+export interface AdminReview extends PublicReview { status: ReviewStatus; updatedAt: string; moderatedAt: string | null; product: { name: string; slug: string; imageUrl: string | null }; customer: { name: string | null; phone: string }; }
+export interface AdminNotification { id: number; type: 'NEW_ORDER' | 'NEW_MESSAGE' | 'ORDER_UPDATED' | 'NEW_REVIEW' | 'RESET_REQUEST'; title: string; body: string | null; orderId: number | null; messageId: number | null; isRead: boolean; createdAt: string; }
 export interface CustomerMessage { id: number; name: string; phone: string | null; email: string | null; orderNumber: string | null; message: string; status: 'NOUVEAU' | 'TRAITE'; handledBy: string | null; createdAt: string; }
 export interface AdminVariant { id?: number; sku: string | null; attributes: Attributes; price: number; stockQuantity: number; isActive: boolean; }
 export interface AdminProduct {
@@ -70,7 +80,7 @@ export const STATUS_ACTIONS: Record<OrderStatus, string> = {
 
 /** Permissions cochables (même liste que backend/src/config/permissions.js). */
 export type Permission = 'orders.view' | 'orders.edit' | 'orders.status' | 'orders.fee' | 'orders.cancel' | 'orders.payment' | 'orders.notify'
-  | 'messages' | 'products' | 'stock' | 'stats' | 'team' | 'settings';
+  | 'messages' | 'reviews' | 'customers.reset' | 'products' | 'stock' | 'stats' | 'team' | 'settings';
 export interface PermissionDef { key: Permission; group: string; label: string; hint?: string; }
 export interface StaffRoleDef { id: number; code: string | null; name: string; description: string | null; isSystem: boolean; isTemplate: boolean; userCount: number; permissions: Permission[]; }
 export interface SellableVariant { variantId: number; productName: string; sku: string | null; attributes: Attributes; price: number; stock: number; }

@@ -3,7 +3,12 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService, toApiError } from '../../core/api.service';
 
-/** Mot de passe oublié : le client indique l'e-mail de son compte et reçoit un lien pour en choisir un nouveau. */
+/**
+ * Mot de passe oublié : le client indique son téléphone ou son nom d'utilisateur.
+ * La boutique lui écrit sur WhatsApp (numéro du compte) pour vérifier que la demande vient de lui,
+ * puis lui envoie le lien quand il répond.
+ * La réponse est la même que le compte existe ou non.
+ */
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
@@ -13,18 +18,22 @@ import { ApiService, toApiError } from '../../core/api.service';
       <span class="eyebrow">Espace client</span>
       <h1>Mot de passe oublié</h1>
       @if (sent()) {
-        <div class="notice ok" role="status">Si un compte utilise cette adresse, un e-mail vient de partir avec un lien pour choisir un nouveau mot de passe. Il est valable une heure.</div>
-        <p class="muted">Rien reçu au bout de quelques minutes ? Regardez dans vos courriers indésirables, ou vérifiez l'adresse saisie.</p>
+        <div class="notice ok" role="status">Demande envoyée. La boutique va vous écrire sur WhatsApp pour vérifier que la demande vient bien de vous.</div>
+        <ul class="reset-steps">
+          <li><strong>La boutique vous écrit sur WhatsApp</strong><span>Sur le numéro de votre compte, pour vous demander si la demande vient bien de vous.</span></li>
+          <li><strong>Répondez « Oui »</strong><span>La boutique vous envoie alors un lien personnel.</span></li>
+          <li><strong>Choisissez votre nouveau mot de passe</strong><span>Vos autres appareils seront déconnectés.</span></li>
+        </ul>
         <a class="btn ghost" routerLink="/connexion">Retour à la connexion</a>
       } @else {
-        <p class="muted">Indiquez l'adresse e-mail de votre compte : nous vous envoyons un lien pour choisir un nouveau mot de passe.</p>
+        <p class="muted">Indiquez le téléphone ou le nom d’utilisateur de votre compte. La boutique vous écrira sur WhatsApp, au numéro enregistré sur votre compte.</p>
         <form class="card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
           @if (error()) { <div class="notice error" role="alert">{{ error() }}</div> }
-          <div class="field"><label for="fe">Adresse e-mail</label>
-            <input id="fe" class="input" type="email" formControlName="email" autocomplete="email" inputmode="email" /></div>
-          <button class="btn block" type="submit" [disabled]="busy()">{{ busy() ? 'Envoi…' : 'Recevoir le lien' }}</button>
+          <div class="field"><label for="fi">Téléphone ou nom d’utilisateur</label>
+            <input id="fi" class="input" formControlName="identifier" autocomplete="username" maxlength="60" placeholder="Ex. 90 12 34 56" /></div>
+          <button class="btn block" type="submit" [disabled]="busy()">{{ busy() ? 'Envoi…' : 'Faire une demande de réinitialisation' }}</button>
         </form>
-        <p class="auth-alt">Pas d'adresse e-mail sur votre compte ? <a routerLink="/contact">Écrivez à la boutique</a>, nous vous aiderons à le retrouver.</p>
+        <p class="auth-alt">Un souci ? <a routerLink="/contact">Écrivez à la boutique</a>.</p>
         <a class="arrow-link" routerLink="/connexion">Retour à la connexion</a>
       }
     </div>`,
@@ -32,14 +41,14 @@ import { ApiService, toApiError } from '../../core/api.service';
 export class ForgotPassword {
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
-  form = this.fb.nonNullable.group({ email: ['', [Validators.required, Validators.email]] });
+  form = this.fb.nonNullable.group({ identifier: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(60)]] });
   sent = signal(false); busy = signal(false); error = signal('');
 
   async submit() {
     this.error.set('');
-    if (this.form.invalid) { this.error.set('Saisissez une adresse e-mail valide.'); return; }
+    if (this.form.invalid) { this.error.set('Saisissez votre téléphone ou votre nom d’utilisateur.'); return; }
     this.busy.set(true);
-    try { await this.api.post('/customer/password/forgot', { email: this.form.getRawValue().email.trim() }); this.sent.set(true); }
+    try { await this.api.post('/customer/password/forgot', { identifier: this.form.getRawValue().identifier.trim() }); this.sent.set(true); }
     catch (e) { const err = toApiError(e); this.error.set(err.details?.[0]?.message ?? err.message); }
     this.busy.set(false);
   }

@@ -6,7 +6,7 @@ export interface ShopBranding { shopName: string; primaryColor: string; logoUrl:
 /** Charge /config.json (URL de l'API, clé Google Maps) puis les réglages de la boutique. Modifiable sans recompiler. */
 @Injectable({ providedIn: 'root' })
 export class ConfigService {
-  apiUrl = 'http://localhost:3000';
+  apiUrl = 'https://florena-store.onrender.com';
   googleMapsApiKey = '';
   defaultMapCenter = { lat: 6.1725, lng: 1.2314 };
   readonly shopName = signal('Ma Boutique');

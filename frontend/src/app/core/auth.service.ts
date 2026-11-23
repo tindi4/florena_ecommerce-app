@@ -20,7 +20,7 @@ export class AuthService {
   can(...p: Permission[]): boolean { const mine = this.user()?.permissions ?? []; return p.some((x) => mine.includes(x)); }
   /** Première page autorisée pour ce rôle. */
   homePath(): string {
-    const pages: [Permission, string][] = [['orders.view', '/admin/dashboard'], ['messages', '/admin/messages'], ['products', '/admin/produits'],
+    const pages: [Permission, string][] = [['orders.view', '/admin/dashboard'], ['messages', '/admin/messages'], ['reviews', '/admin/avis'], ['customers.reset', '/admin/mots-de-passe'], ['products', '/admin/produits'],
       ['stock', '/admin/stock'], ['stats', '/admin/statistiques'], ['team', '/admin/equipe'], ['settings', '/admin/reglages']];
     return pages.find(([perm]) => this.can(perm))?.[1] ?? '/admin/aucun-acces';
   }

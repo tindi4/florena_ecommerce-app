@@ -22,7 +22,7 @@ import { AdminNotification, Paged } from '../../core/models';
       <div class="stack">
         @for (n of data()!.items; track n.id) {
           <button type="button" class="notif" [class.unread]="!n.isRead" (click)="open(n)">
-            <span class="notif-ico" aria-hidden="true">{{ n.type === 'NEW_ORDER' ? '🛒' : n.type === 'ORDER_UPDATED' ? '✏️' : '✉️' }}</span>
+            <span class="notif-ico" aria-hidden="true">{{ n.type === 'NEW_ORDER' ? '🛒' : n.type === 'ORDER_UPDATED' ? '✏️' : n.type === 'NEW_REVIEW' ? '⭐' : n.type === 'RESET_REQUEST' ? '🔑' : '✉️' }}</span>
             <span class="notif-txt"><strong>{{ n.title }}</strong><span class="muted small">{{ n.body }}</span></span>
             <span class="muted small">{{ n.createdAt | date:'dd/MM HH:mm' }}</span>
             @if (!n.isRead) { <span class="dot-unread" aria-label="Non lue"></span> }
@@ -53,6 +53,8 @@ export class AdminNotifications implements OnInit, OnDestroy {
   async open(n: AdminNotification) {
     if (!n.isRead) { try { await this.api.patch(`/admin/notifications/${n.id}/read`, {}); } catch { /* ignore */ } this.counters.refresh(); }
     if (n.orderId) this.router.navigate(['/admin/commandes', n.orderId]);
+    else if (n.type === 'NEW_REVIEW') this.router.navigate(['/admin/avis']);
+    else if (n.type === 'RESET_REQUEST') this.router.navigate(['/admin/mots-de-passe']);
     else this.router.navigate(['/admin/messages']);
   }
 }

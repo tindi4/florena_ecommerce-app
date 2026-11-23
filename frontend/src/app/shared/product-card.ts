@@ -2,11 +2,12 @@ import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProductCard } from '../core/models';
 import { ImgPipe, MoneyPipe } from './pipes';
+import { Stars } from './stars';
 
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [RouterLink, MoneyPipe, ImgPipe],
+  imports: [RouterLink, MoneyPipe, ImgPipe, Stars],
   template: `
     <article class="pcard" [class.soldout]="!p().inStock">
       <a class="pcard-img" [routerLink]="['/produit', p().slug]" [attr.aria-label]="p().name">
@@ -21,6 +22,7 @@ import { ImgPipe, MoneyPipe } from './pipes';
         @if (p().category) { <span class="pcard-cat">{{ p().category!.name }}</span> }
         <h3><a [routerLink]="['/produit', p().slug]">{{ p().name }}</a></h3>
         @if (p().shortDescription) { <p class="muted small clamp">{{ p().shortDescription }}</p> }
+        @if (p().rating; as r) { <span class="pcard-rating"><app-stars [value]="r.average" [size]="12" /><span>{{ r.count }} avis</span></span> }
         <p class="pcard-price">@if (p().priceMin !== p().priceMax) { <span class="from">dès </span> }{{ p().priceMin | money }}</p>
       </div>
     </article>`,

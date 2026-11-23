@@ -14,7 +14,7 @@ import { ConfigService } from '../../core/config.service';
         <button class="adm-burger" type="button" (click)="menu.set(!menu())" aria-label="Menu">☰</button>
         @if (cfg.logoUrl(); as logo) { <img class="adm-logo" [src]="logo" alt="" /> }
         <strong class="adm-title">{{ cfg.shopName() }}</strong>
-        @if (auth.can('orders.view', 'messages')) {
+        @if (auth.can('orders.view', 'messages', 'reviews', 'customers.reset')) {
           <a class="adm-bell" [class.ring]="counters.ringing()" routerLink="/admin/notifications" [attr.aria-label]="c().unreadNotifications + ' notifications non lues'">
             🔔 @if (c().unreadNotifications > 0) { <span class="bell-count" [class.pulse]="counters.ringing()">{{ c().unreadNotifications }}</span> }
           </a>
@@ -28,15 +28,17 @@ import { ConfigService } from '../../core/config.service';
         </div>
         <nav aria-label="Administration">
           <!-- Chaque lien n'apparaît qu'avec la permission correspondante (le serveur revérifie toujours). -->
-          @if (auth.can('orders.view', 'messages', 'stats')) { <span class="adm-nav-label">Activité</span> }
+          @if (auth.can('orders.view', 'messages', 'stats', 'reviews', 'customers.reset')) { <span class="adm-nav-label">Activité</span> }
           @if (auth.can('orders.view')) {
             <a routerLink="/admin/dashboard" routerLinkActive="on"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4v9Zm0 7h6v-4H4v4Zm10 0h6v-9h-6v9Zm0-16v4h6V4h-6Z"/></svg>Tableau de bord</a>
             <a routerLink="/admin/commandes" routerLinkActive="on"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Commandes @if (c().todoOrders > 0) { <span class="pill">{{ c().todoOrders }}</span> }</a>
           }
-          @if (auth.can('orders.view', 'messages')) {
+          @if (auth.can('orders.view', 'messages', 'reviews', 'customers.reset')) {
             <a routerLink="/admin/notifications" routerLinkActive="on"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>Notifications @if (c().unreadNotifications > 0) { <span class="pill hot" [class.pulse]="counters.ringing()">{{ c().unreadNotifications }}</span> }</a>
           }
           @if (auth.can('messages')) { <a routerLink="/admin/messages" routerLinkActive="on"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.8 7L3 21l2-5.5A8 8 0 1 1 21 12Z"/></svg>Messages @if (c().newMessages > 0) { <span class="pill hot">{{ c().newMessages }}</span> }</a> }
+          @if (auth.can('customers.reset')) { <a routerLink="/admin/mots-de-passe" routerLinkActive="on"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Mots de passe @if ((c().pendingResets ?? 0) > 0) { <span class="pill hot">{{ c().pendingResets }}</span> }</a> }
+          @if (auth.can('reviews')) { <a routerLink="/admin/avis" routerLinkActive="on"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8L3.6 9.6l5.8-.8L12 3.5Z"/></svg>Avis clients @if ((c().pendingReviews ?? 0) > 0) { <span class="pill hot">{{ c().pendingReviews }}</span> }</a> }
           @if (auth.can('stats')) { <a routerLink="/admin/statistiques" routerLinkActive="on"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg>Statistiques</a> }
           @if (auth.can('products', 'stock')) { <span class="adm-nav-label">Boutique</span> }
           @if (auth.can('stock')) { <a routerLink="/admin/stock" routerLinkActive="on"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>Stock</a> }

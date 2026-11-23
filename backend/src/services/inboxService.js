@@ -71,10 +71,12 @@ async function counters() {
        (SELECT COUNT(*) FROM notifications WHERE is_read = 0) AS unread_notifications,
        (SELECT COUNT(*) FROM customer_messages WHERE status = 'NOUVEAU') AS new_messages,
        (SELECT COUNT(*) FROM orders WHERE status IN (?)) AS todo_orders,
-       (SELECT COUNT(*) FROM orders WHERE payment_status = 'NON_PAYE' AND status <> 'ANNULEE') AS unpaid_orders`, [TODO_STATUSES]);
+       (SELECT COUNT(*) FROM orders WHERE payment_status = 'NON_PAYE' AND status <> 'ANNULEE') AS unpaid_orders,
+       (SELECT COUNT(*) FROM product_reviews WHERE status = 'EN_ATTENTE') AS pending_reviews,
+       (SELECT COUNT(*) FROM customer_reset_requests WHERE status = 'EN_ATTENTE') AS pending_resets`, [TODO_STATUSES]);
   return {
     unreadNotifications: Number(c.unread_notifications), newMessages: Number(c.new_messages),
-    todoOrders: Number(c.todo_orders), unpaidOrders: Number(c.unpaid_orders),
+    todoOrders: Number(c.todo_orders), unpaidOrders: Number(c.unpaid_orders), pendingReviews: Number(c.pending_reviews), pendingResets: Number(c.pending_resets),
   };
 }
 
