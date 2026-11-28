@@ -1,5 +1,5 @@
 {
-  "apiUrl": "http://localhost:3000",
+  "apiUrl": "https://florena-store.onrender.com",
   "googleMapsApiKey": "",
      "defaultMapCenter": { "lat": 6.1725, "lng": 1.2314 }
   
